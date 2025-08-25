@@ -14,11 +14,10 @@
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); padding: 2rem; margin-bottom: 2rem; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
         .btn { transition: all 0.3s ease; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .risk-checkbox-container { max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem; background-color: #f7fafc; }
-        .risk-checkbox-container label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
         #os-preview { font-family: 'Times New Roman', Times, serif; color: #000; background: #fff; padding: 2rem; border: 1px solid #ccc; line-height: 1.5; }
         #os-preview h2, #os-preview h3 { font-weight: bold; text-align: center; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 12pt; }
         #os-preview p { text-align: justify; margin-bottom: 1rem; font-size: 11pt; }
@@ -28,6 +27,8 @@
         #os-preview .signature-line { border-top: 1px solid #000; margin-top: 3rem; text-align: center; padding-top: 0.5rem; }
         .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 24px; height: 24px; animation: spin 2s linear infinite; }
         .blinking-border { animation: blink 1s 3; }
+        .tab-button.active { border-color: #3b82f6; color: #3b82f6; background-color: #eff6ff; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
         @keyframes blink { 50% { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -37,7 +38,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900">Gerador Automatizado de Ordem de Serviço</h1>
-            <p class="text-lg text-gray-600 mt-2">Carregue os dados, analise os riscos e gere a OS com relatório.</p>
+            <p class="text-lg text-gray-600 mt-2">Um assistente inteligente para as suas necessidades de SST.</p>
         </header>
 
         <!-- Área de Notificação -->
@@ -45,113 +46,96 @@
             <span class="font-medium" id="notification-title"></span> <span id="notification-message"></span>
         </div>
 
-        <!-- Passo 1: Carregar Dados -->
         <div class="card">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Passo 1: Carregar Arquivos</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <label for="xlsx-input" class="block mb-2 font-medium text-gray-700">1.1 - Planilha de Funcionários (.xlsx):</label>
-                    <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
-                    <label for="employee-select" class="block mt-4 mb-2 font-medium text-gray-700">Funcionário:</label>
-                    <select id="employee-select" disabled class="w-full p-2 border border-gray-300 rounded-lg bg-gray-200 cursor-not-allowed transition-all duration-300">
-                        <option>Aguardando planilha...</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="sst-doc-input" class="block mb-2 font-medium text-gray-700">1.2 - Documento de SST (PGR, etc.):</label>
-                    <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                    <div id="ocr-status" class="mt-2 text-sm flex items-center gap-2"></div>
-                </div>
+            <!-- Navegação por Abas -->
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button id="tab-btn-1" class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">1. Dados Iniciais</button>
+                    <button id="tab-btn-2" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300">2. Análise de Riscos</button>
+                    <button id="tab-btn-3" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300">3. Finalizar e Relatório</button>
+                </nav>
             </div>
-        </div>
 
-        <!-- Passo 2: Validar Dados Extraídos -->
-        <div id="validation-card" class="card hidden">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Passo 2: Validar Dados Extraídos do Documento</h2>
-            <p class="text-sm text-gray-600 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
-                    <input type="text" id="manual-setor" class="w-full p-2 border border-gray-300 rounded-lg transition-all duration-300">
+            <!-- Conteúdo das Abas -->
+            <div class="pt-8">
+                <!-- Aba 1: Dados Iniciais -->
+                <div id="tab-content-1" class="tab-content">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Carregar Arquivos e Validar Dados</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <label for="xlsx-input" class="block mb-2 font-medium text-gray-700">1.1 - Planilha de Funcionários (.xlsx):</label>
+                            <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
+                            <label for="employee-select" class="block mt-4 mb-2 font-medium text-gray-700">Funcionário:</label>
+                            <select id="employee-select" disabled class="w-full p-2 border border-gray-300 rounded-lg bg-gray-200 cursor-not-allowed transition-all duration-300">
+                                <option>Aguardando planilha...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="sst-doc-input" class="block mb-2 font-medium text-gray-700">1.2 - Documento de SST (PGR, etc.):</label>
+                            <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <div id="ocr-status" class="mt-2 text-sm flex items-center gap-2"></div>
+                        </div>
+                    </div>
+                    <div id="validation-section" class="hidden mt-6 border-t pt-6">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-3">Valide os Dados Extraídos do Documento</h4>
+                        <p class="text-sm text-gray-600 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
+                                <input type="text" id="manual-setor" class="w-full p-2 border border-gray-300 rounded-lg transition-all duration-300">
+                            </div>
+                            <div>
+                                <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
+                                <input type="text" id="manual-funcao" class="w-full p-2 border border-gray-300 rounded-lg transition-all duration-300">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
+                                <textarea id="manual-atividades" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma descrição de atividades encontrada. Adicione manualmente se necessário."></textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
+                                <textarea id="manual-epi" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma informação de EPI encontrada. Adicione manualmente se necessário."></textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
+                                <textarea id="manual-medicoes" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma medição encontrada. Adicione manualmente se necessário."></textarea>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
-                    <input type="text" id="manual-funcao" class="w-full p-2 border border-gray-300 rounded-lg transition-all duration-300">
-                </div>
-                <div class="md:col-span-2">
-                    <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
-                    <textarea id="manual-epi" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma informação de EPI encontrada. Adicione manualmente se necessário."></textarea>
-                </div>
-                <div class="md:col-span-2">
-                    <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
-                    <textarea id="manual-medicoes" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma medição encontrada. Adicione manualmente se necessário."></textarea>
-                </div>
-            </div>
-        </div>
 
-        <!-- Passo 3: Análise de Riscos -->
-        <div class="card">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Passo 3: Análise de Riscos</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Conteúdo dos riscos aqui... -->
-                 <div>
-                    <label class="block mb-1 font-medium text-sm">Risco Físico:</label>
-                    <div id="risk-fisico-checkboxes" class="risk-checkbox-container mb-2"></div>
-                    <textarea id="risk-fisico-outro" rows="1" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Outro risco físico..."></textarea>
-                    <label for="damage-fisico" class="block mb-1 mt-2 font-medium text-sm">Dano (Físico):</label>
-                    <textarea id="damage-fisico" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
+                <!-- Aba 2: Análise de Riscos -->
+                <div id="tab-content-2" class="tab-content hidden">
+                     <div class="space-y-4" id="risk-accordion">
+                        <!-- Accordion Items will be generated by JS -->
+                    </div>
                 </div>
-                <div>
-                    <label class="block mb-1 font-medium text-sm">Risco Químico:</label>
-                    <div id="risk-quimico-checkboxes" class="risk-checkbox-container mb-2"></div>
-                    <textarea id="risk-quimico-outro" rows="1" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Outro risco químico..."></textarea>
-                    <label for="damage-quimico" class="block mb-1 mt-2 font-medium text-sm">Dano (Químico):</label>
-                    <textarea id="damage-quimico" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
-                </div>
-                <div>
-                    <label class="block mb-1 font-medium text-sm">Risco Biológico:</label>
-                    <div id="risk-biologico-checkboxes" class="risk-checkbox-container mb-2"></div>
-                    <textarea id="risk-biologico-outro" rows="1" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Outro risco biológico..."></textarea>
-                    <label for="damage-biologico" class="block mb-1 mt-2 font-medium text-sm">Dano (Biológico):</label>
-                    <textarea id="damage-biologico" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
-                </div>
-                <div>
-                    <label class="block mb-1 font-medium text-sm">Risco de Acidente:</label>
-                    <div id="risk-acidente-checkboxes" class="risk-checkbox-container mb-2"></div>
-                    <textarea id="risk-acidente-outro" rows="1" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Outro risco de acidente..."></textarea>
-                    <label for="damage-acidente" class="block mb-1 mt-2 font-medium text-sm">Dano (Acidente):</label>
-                    <textarea id="damage-acidente" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
-                </div>
-                <div class="md:col-span-2">
-                    <label for="risk-ergonomico" class="block mb-1 font-medium text-sm">Risco Ergonômico:</label>
-                    <textarea id="risk-ergonomico" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Ex: Postura inadequada, esforço repetitivo..."></textarea>
-                    <label for="damage-ergonomico" class="block mb-1 mt-2 font-medium text-sm">Dano (Ergonômico):</label>
-                    <textarea id="damage-ergonomico" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Ex: LER/DORT, dores musculares..."></textarea>
-                </div>
-            </div>
-        </div>
 
-        <!-- Passo 4: Gerar OS e Relatório -->
-        <div class="card">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Passo 4: Gerar OS e Relatório</h2>
-            <div class="text-center mb-8">
-                <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                    Gerar PDF da Ordem de Serviço
-                </button>
-            </div>
-            <h3 class="text-xl font-semibold mb-4">Relatório de OS Geradas (nesta sessão)</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white border">
-                    <thead class="bg-gray-200">
-                        <tr>
-                            <th class="py-2 px-4 border-b text-left">Nome do Funcionário</th>
-                            <th class="py-2 px-4 border-b text-left">Setor</th>
-                            <th class="py-2 px-4 border-b text-left">Função</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-table-body"></tbody>
-                </table>
+                <!-- Aba 3: Finalizar e Relatório -->
+                <div id="tab-content-3" class="tab-content hidden">
+                    <div class="text-center mb-8">
+                         <h3 class="text-xl font-semibold mb-4 text-gray-800">Gerar Ordem de Serviço</h3>
+                        <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            Gerar PDF da Ordem de Serviço
+                        </button>
+                    </div>
+                    <div class="border-t pt-8">
+                        <h3 class="text-xl font-semibold mb-4">Relatório de OS Geradas (nesta sessão)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 border-b text-left">Nome do Funcionário</th>
+                                        <th class="py-2 px-4 border-b text-left">Setor</th>
+                                        <th class="py-2 px-4 border-b text-left">Função</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -204,6 +188,15 @@
                 "Queda de objetos": ["Prensamento ou aprisionamento de partes do corpo", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
                 "Soterramento": ["Asfixia", "desconforto respiratório", "nível de consciência alterado", "letargia", "palidez", "pele azulada", "tosse", "transtorno neurológico."],
                 "Trabalho em espaços confinados": ["Asfixia", "hiperóxia", "contaminação por poeiras e/ou gases tóxicos", "queimadura", "afogamento."]
+            },
+            ergonomico: {
+                "Levantamento e transporte manual de peso": ["Dores lombares", "Hérnia de disco", "Lesões musculoesqueléticas"],
+                "Postura inadequada (sentado, em pé, agachado)": ["Dores na coluna", "Fadiga muscular", "LER/DORT"],
+                "Movimentos repetitivos": ["Tendinite", "Tenossinovite", "Síndrome do túnel do carpo", "LER/DORT"],
+                "Jornada de trabalho prolongada": ["Estresse", "Fadiga crônica", "Burnout"],
+                "Ritmo excessivo de trabalho": ["Estresse", "Ansiedade", "Fadiga mental"],
+                "Monotonia das tarefas": ["Desmotivação", "Estresse", "Problemas de saúde mental"],
+                "Exigência de força excessiva": ["Distensões musculares", "Rupturas de tendões", "Lesões articulares"]
             }
         };
 
@@ -220,26 +213,56 @@
         const employeeSelect = document.getElementById('employee-select');
         const sstDocInput = document.getElementById('sst-doc-input');
         const ocrStatus = document.getElementById('ocr-status');
-        const validationCard = document.getElementById('validation-card');
+        const validationSection = document.getElementById('validation-section');
         const manualSetor = document.getElementById('manual-setor');
         const manualFuncao = document.getElementById('manual-funcao');
+        const manualAtividades = document.getElementById('manual-atividades');
         const manualEpi = document.getElementById('manual-epi');
         const manualMedicoes = document.getElementById('manual-medicoes');
         const generatePdfBtn = document.getElementById('generate-pdf-btn');
         const reportTableBody = document.getElementById('report-table-body');
 
         function showNotification(type, title, message) {
-            notificationArea.className = 'p-4 mb-4 text-sm rounded-lg'; // Reset classes
-            let typeClasses = '';
-            if (type === 'error') typeClasses = 'bg-red-100 text-red-700';
-            else if (type === 'warning') typeClasses = 'bg-yellow-100 text-yellow-700';
-            else typeClasses = 'bg-green-100 text-green-700';
+            notificationArea.className = 'p-4 mb-4 text-sm rounded-lg';
+            let typeClasses = type === 'error' ? 'bg-red-100 text-red-700' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700');
             notificationArea.classList.add(...typeClasses.split(' '));
             notificationTitle.textContent = title;
             notificationMessage.textContent = message;
         }
 
         function hideNotification() { notificationArea.classList.add('hidden'); }
+
+        function createAccordion() {
+            const accordionContainer = document.getElementById('risk-accordion');
+            accordionContainer.innerHTML = '';
+            const riskCategories = {
+                fisico: 'Risco Físico',
+                quimico: 'Risco Químico',
+                biologico: 'Risco Biológico',
+                acidente: 'Risco de Acidente',
+                ergonomico: 'Risco Ergonômico'
+            };
+
+            for (const key in riskCategories) {
+                const title = riskCategories[key];
+                const item = document.createElement('div');
+                item.className = 'border border-gray-200 rounded-lg';
+                item.innerHTML = `
+                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left text-gray-800 font-semibold bg-gray-50 hover:bg-gray-100">
+                        <span>${title}</span>
+                        <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="accordion-content p-4 border-t border-gray-200">
+                        <div id="risk-${key}-checkboxes" class="risk-checkbox-container mb-2"></div>
+                        <textarea id="risk-${key}-outro" rows="1" class="w-full p-2 border border-gray-300 rounded-lg mt-2" placeholder="Outro..."></textarea>
+                        <label for="damage-${key}" class="block mb-1 mt-2 font-medium text-sm">Dano (${title}):</label>
+                        <textarea id="damage-${key}" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
+                    </div>
+                `;
+                accordionContainer.appendChild(item);
+            }
+            populateRiskCheckboxes();
+        }
 
         function populateRiskCheckboxes() {
             for (const category in riskData) {
@@ -261,7 +284,7 @@
         }
         
         function handleRiskSelectionChange() {
-            const categories = ['fisico', 'quimico', 'biologico', 'acidente'];
+            const categories = ['fisico', 'quimico', 'biologico', 'acidente', 'ergonomico'];
             categories.forEach(category => {
                 const damageTextarea = document.getElementById(`damage-${category}`);
                 const allDamages = new Set();
@@ -282,13 +305,10 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    employeeData = XLSX.utils.sheet_to_json(worksheet);
+                    employeeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                     populateEmployeeSelect();
                 } catch (error) {
-                    console.error("Erro ao ler a planilha:", error);
-                    showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique se o formato (.xlsx) e as colunas estão corretos.');
+                    showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique o formato (.xlsx) e as colunas.');
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -300,8 +320,7 @@
                 const employeeName = employee['Nome do Funcionário'];
                 if (employeeName) {
                     const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = employeeName;
+                    option.value = index; option.textContent = employeeName;
                     employeeSelect.appendChild(option);
                 }
             });
@@ -313,71 +332,63 @@
             const file = event.target.files[0];
             if (!file) return;
             ocrStatus.innerHTML = '<div class="loader"></div> <span>Processando documento... Pode levar alguns instantes.</span>';
-            validationCard.classList.add('hidden');
+            validationSection.classList.add('hidden');
             hideNotification();
             try {
                 const { data: { text } } = await Tesseract.recognize(file, 'por');
                 parseOCRText(text);
             } catch (error) {
-                console.error("Erro no OCR:", error);
                 ocrStatus.textContent = '';
-                showNotification('error', 'Erro de OCR!', 'Ocorreu uma falha ao tentar ler o documento. Por favor, insira os dados manualmente.');
-                validationCard.classList.remove('hidden');
+                showNotification('error', 'Erro de OCR!', 'Ocorreu uma falha ao ler o documento. Insira os dados manualmente.');
+                validationSection.classList.remove('hidden');
             }
         });
         
         function extractSection(text, keywords, stopKeywords) {
             const textLower = text.toLowerCase();
             let startIndex = -1;
+            let keywordFound = '';
             for (const keyword of keywords) {
                 startIndex = textLower.indexOf(keyword.toLowerCase());
-                if (startIndex !== -1) break;
+                if (startIndex !== -1) {
+                    keywordFound = keyword;
+                    break;
+                }
             }
-
             if (startIndex === -1) return '';
-
+            
+            let searchFrom = startIndex + keywordFound.length;
             let endIndex = text.length;
             for (const stopKeyword of stopKeywords) {
-                const potentialEndIndex = textLower.indexOf(stopKeyword.toLowerCase(), startIndex + 1);
+                const potentialEndIndex = textLower.indexOf(stopKeyword.toLowerCase(), searchFrom);
                 if (potentialEndIndex !== -1) {
                     endIndex = Math.min(endIndex, potentialEndIndex);
                 }
             }
-            
-            // Tenta pegar o texto após o ':' e até o final da linha ou seção
-            let content = text.substring(startIndex, endIndex);
+            let content = text.substring(searchFrom, endIndex);
             const colonIndex = content.indexOf(':');
-            if(colonIndex !== -1) {
+            if (colonIndex !== -1 && colonIndex < 20) { // Check if colon is near the start
                 content = content.substring(colonIndex + 1);
             }
-            
             return content.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, ' ').trim();
         }
 
-
         function parseOCRText(text) {
-            const lines = text.split('\n');
-            let setor = ''; let funcao = '';
-            const setorRegex = /(?:setor|área|departamento)\s*[:\-]?\s*(.+)/i;
-            const funcaoRegex = /(?:função|cargo)\s*[:\-]?\s*(.+)/i;
-            for (const line of lines) {
-                const setorMatch = line.match(setorRegex);
-                if (setorMatch && !setor) setor = setorMatch[1].trim();
-                const funcaoMatch = line.match(funcaoRegex);
-                if (funcaoMatch && !funcao) funcao = funcaoMatch[1].trim();
-            }
-
-            const allStopKeywords = ['riscos', 'danos', 'procedimentos', 'orientações', 'assinatura', 'data'];
-            const epis = extractSection(text, ['EPI:', 'Equipamentos de Proteção Individual'], allStopKeywords);
+            let setor = extractSection(text, ['Setor:', 'Área:', 'Departamento:'], ['Função', 'Cargo']);
+            let funcao = extractSection(text, ['Função:', 'Cargo:'], ['Atividades', 'Descrição', 'EPI']);
+            
+            const allStopKeywords = ['riscos', 'danos', 'procedimentos', 'orientações', 'assinatura', 'data', 'medidas', 'EPI'];
+            const atividades = extractSection(text, ['Atividades:', 'Descrição da Função:', 'Tarefas:'], allStopKeywords);
+            const epis = extractSection(text, ['EPIs Recomendados', 'EPI:', 'Equipamentos de Proteção Individual'], allStopKeywords);
             const medicoes = extractSection(text, ['Medições', 'Avaliações Ambientais', 'Resultados das Avaliações'], allStopKeywords);
 
             ocrStatus.textContent = `✅ Documento processado. Valide os dados abaixo.`;
             manualSetor.value = setor;
             manualFuncao.value = funcao;
+            manualAtividades.value = atividades;
             manualEpi.value = epis;
             manualMedicoes.value = medicoes;
-            validationCard.classList.remove('hidden');
-            
+            validationSection.classList.remove('hidden');
             checkFormReadiness();
         }
 
@@ -397,10 +408,8 @@
                 { el: manualSetor, msg: 'Preencha o campo Setor.' },
                 { el: manualFuncao, msg: 'Preencha o campo Função.' }
             ];
-            
             fieldsToValidate.forEach(field => field.el.classList.remove('blinking-border'));
             hideNotification();
-
             let missingFieldsMessages = [];
             fieldsToValidate.forEach(field => {
                 if (!field.el.value.trim()) {
@@ -409,7 +418,6 @@
                     missingFieldsMessages.push(field.msg);
                 }
             });
-
             if (!isValid) {
                 showNotification('warning', 'Campos Obrigatórios!', missingFieldsMessages.join(' '));
             }
@@ -419,22 +427,17 @@
         generatePdfBtn.addEventListener('click', () => {
             if (!validateForm()) return;
             try {
-                const selectedIndex = employeeSelect.value;
-                const employee = employeeData[selectedIndex];
+                const employee = employeeData[employeeSelect.value];
                 const setor = manualSetor.value.trim();
                 const funcao = manualFuncao.value.trim();
-                
                 updatePreview(employee, setor, funcao);
-
                 const employeeName = employee['Nome do Funcionário'];
                 const fileName = `OS - ${employeeName}.pdf`;
                 const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-                const osPreviewContent = document.getElementById('os-preview');
-                html2pdf().from(osPreviewContent).set(options).save().then(() => {
+                html2pdf().from(document.getElementById('os-preview')).set(options).save().then(() => {
                     addToReport({ nome: employeeName, setor, funcao });
                 });
             } catch (error) {
-                console.error("Erro ao gerar PDF:", error);
                 showNotification('error', 'Erro na Geração do PDF!', 'Não foi possível criar o arquivo PDF. Tente novamente.');
             }
         });
@@ -448,22 +451,24 @@
 
         function updatePreview(employee, setor, funcao) {
             const previewContainer = document.getElementById('os-preview');
+            const atividadesText = manualAtividades.value.trim() || 'Não identificado no momento da avaliação.';
             const epiText = manualEpi.value.trim() || 'Não identificado no momento da avaliação.';
             const medicoesText = manualMedicoes.value.trim() || 'Não identificado no momento da avaliação.';
-
             previewContainer.innerHTML = `
                 <h2>ORDEM DE SERVIÇO - SEGURANÇA E SAÚDE NO TRABALHO (NR-01)</h2>
-                <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor, conforme estabelece a NR-01, sobre as condições de segurança e saúde às quais estão expostos, de forma a padronizar comportamentos para prevenir acidentes e/ou doenças ocupacionais.</p>
+                <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor...</p>
                 <table class="header-table">
                     <tr><td colspan="2"><strong>Empresa:</strong> Bombril</td><td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td></tr>
                     <tr><td colspan="2"><strong>Nome do Funcionário:</strong> ${employee['Nome do Funcionário'] || 'N/A'}</td><td colspan="2"><strong>Data de Admissão:</strong> ${employee['Data de Admissão'] || 'N/A'}</td></tr>
                     <tr><td colspan="2"><strong>Setor de Trabalho:</strong> ${setor}</td><td colspan="2"><strong>Função:</strong> ${funcao}</td></tr>
                 </table>
+                <h3>TAREFAS DA FUNÇÃO</h3>
+                <p>${atividadesText}</p>
                 <h3>AGENTES DE RISCOS OCUPACIONAIS</h3>
                 <table>
                     <tr><td><strong>Físico:</strong> ${getCombinedRisks('fisico')}</td><td><strong>Acidente:</strong> ${getCombinedRisks('acidente')}</td></tr>
                     <tr><td><strong>Químico:</strong> ${getCombinedRisks('quimico')}</td><td><strong>Biológico:</strong> ${getCombinedRisks('biologico')}</td></tr>
-                    <tr><td colspan="2"><strong>Ergonômicos:</strong> ${document.getElementById('risk-ergonomico').value.trim() || defaultText}</td></tr>
+                    <tr><td colspan="2"><strong>Ergonômicos:</strong> ${getCombinedRisks('ergonomico')}</td></tr>
                 </table>
                 <h3>POSSÍVEIS DANOS À SAÚDE</h3>
                 <table>
@@ -471,8 +476,6 @@
                     <tr><td><strong>Químico:</strong> ${document.getElementById('damage-quimico').value.trim() || defaultText}</td><td><strong>Biológico:</strong> ${document.getElementById('damage-biologico').value.trim() || defaultText}</td></tr>
                     <tr><td colspan="2"><strong>Ergonômicos:</strong> ${document.getElementById('damage-ergonomico').value.trim() || defaultText}</td></tr>
                 </table>
-                <h3>MEIOS PARA O EMPREGADO PREVENIR E CONTROLAR OS RISCOS OCUPACIONAIS</h3>
-                <p>"Barreira física, Protetor auricular silicone tipo plug; Insufladores / Exaustores / Ventilação natural..."</p>
                 <h3>MEDIDAS ADOTADAS PELA EMPRESA</h3>
                 <p><strong>EPI:</strong> ${epiText}</p>
                 <p>"Treinamento e Supervisão para execução das tarefas e uso dos EPI..."</p>
@@ -485,11 +488,7 @@
             `;
         }
         
-        function addToReport(data) {
-            generatedOSReport.push(data);
-            updateReportTable();
-        }
-
+        function addToReport(data) { generatedOSReport.push(data); updateReportTable(); }
         function updateReportTable() {
             reportTableBody.innerHTML = '';
             generatedOSReport.forEach(item => {
@@ -498,9 +497,39 @@
                 reportTableBody.appendChild(row);
             });
         }
-
+        
+        // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
-            populateRiskCheckboxes();
+            createAccordion();
+            
+            // Lógica das Abas
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const target = tab.id.replace('btn', 'content');
+                    tabContents.forEach(c => c.classList.add('hidden'));
+                    document.getElementById(target).classList.remove('hidden');
+                });
+            });
+
+            // Lógica do Acordeão
+            document.getElementById('risk-accordion').addEventListener('click', (e) => {
+                const header = e.target.closest('.accordion-header');
+                if (header) {
+                    const content = header.nextElementSibling;
+                    const icon = header.querySelector('svg');
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                }
+            });
         });
     </script>
 </body>
