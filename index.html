@@ -297,4 +297,339 @@
             let excecoes = ["da", "de", "do", "dos", "das", "em", "para", "com", "no", "na", "nos", "nas"];
             for (let i = 0; i < txt.length; i++) {
                 if (!excecoes.includes(txt[i]) || i === 0) {
-                    
+                    txt[i] = txt[i].charAt(0).toUpperCase() + txt[i].slice(1);
+                }
+            }
+            return txt.join(" ");
+        }
+
+        function showNotification(type, title, message) {
+            notificationArea.className = 'p-4 mb-4 text-sm rounded-lg';
+            let typeClasses = type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300');
+            notificationArea.classList.add(...typeClasses.split(' '));
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+        }
+
+        function hideNotification() { notificationArea.classList.add('hidden'); }
+
+        // --- LÓGICA DE CRIAÇÃO DA UI ---
+
+        function createRiskCards() {
+            const container = document.getElementById('risk-cards-container');
+            container.innerHTML = '';
+            const riskCategories = {
+                fisico: 'Risco Físico',
+                quimico: 'Risco Químico',
+                biologico: 'Risco Biológico',
+                acidente: 'Risco de Acidente',
+                ergonomico: 'Risco Ergonômico'
+            };
+
+            for (const key in riskCategories) {
+                const title = riskCategories[key];
+                const card = document.createElement('div');
+                card.className = 'border rounded-lg p-4 space-y-3';
+                card.style.borderColor = 'var(--border-color)';
+                
+                card.innerHTML = `
+                    <h4 class="text-lg font-semibold">${title}</h4>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Perigos / Fatores de Risco:</label>
+                        <div id="risk-${key}-checkboxes" class="risk-checkbox-container"></div>
+                        <textarea id="risk-${key}-outro" rows="1" class="w-full p-2 border rounded-lg mt-2" placeholder="Outro..."></textarea>
+                    </div>
+                    <div>
+                        <label for="damage-${key}" class="block text-sm font-medium mb-1">Possíveis Danos à Saúde:</label>
+                        <textarea id="damage-${key}" rows="3" class="w-full p-2 border rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+            populateRiskCheckboxes();
+        }
+
+        function populateRiskCheckboxes() {
+            for (const category in riskData) {
+                const container = document.getElementById(`risk-${category}-checkboxes`);
+                if (container) {
+                    const sortedRisks = Object.keys(riskData[category]).sort();
+                    for (const risk of sortedRisks) {
+                        const label = document.createElement('label');
+                        label.className = 'flex items-center space-x-2 cursor-pointer';
+                        const input = document.createElement('input');
+                        input.type = 'checkbox'; input.value = risk; input.dataset.category = category;
+                        input.className = 'rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600';
+                        const span = document.createElement('span'); span.textContent = risk;
+                        label.appendChild(input); label.appendChild(span); container.appendChild(label);
+                        input.addEventListener('change', handleRiskSelectionChange);
+                    }
+                }
+            }
+        }
+        
+        // --- LÓGICA DE EVENTOS E MANIPULAÇÃO DE DADOS ---
+
+        function handleRiskSelectionChange() {
+            const categories = ['fisico', 'quimico', 'biologico', 'acidente', 'ergonomico'];
+            categories.forEach(category => {
+                const damageTextarea = document.getElementById(`damage-${category}`);
+                const allDamages = new Set();
+                document.querySelectorAll(`#risk-${category}-checkboxes input:checked`).forEach(checkbox => {
+                    const risk = checkbox.value;
+                    const damages = riskData[category][risk] || [];
+                    damages.forEach(damage => allDamages.add(damage));
+                });
+                damageTextarea.value = Array.from(allDamages).join(', ');
+            });
+        }
+
+        xlsxInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    employeeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    populateEmployeeSelect();
+                } catch (error) {
+                    showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique o formato (.xlsx) e as colunas.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function populateEmployeeSelect() {
+            employeeSelect.innerHTML = '<option>Aguardando planilha...</option>';
+            employeeSelect.innerHTML = '<option value="">-- Selecione um funcionário --</option>';
+            employeeData.forEach((employee, index) => {
+                const employeeName = employee['Nome do Funcionário'];
+                if (employeeName) {
+                    const option = document.createElement('option');
+                    option.value = index; option.textContent = formatAsTitle(employeeName);
+                    employeeSelect.appendChild(option);
+                }
+            });
+            employeeSelect.disabled = false;
+            employeeSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
+        }
+
+        sstDocInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            ocrStatus.innerHTML = '<div class="loader"></div> <span>Processando documento... Pode levar alguns instantes.</span>';
+            validationSection.classList.add('hidden');
+            hideNotification();
+            try {
+                const { data: { text } } = await Tesseract.recognize(file, 'por');
+                parseOCRText(text);
+            } catch (error) {
+                ocrStatus.textContent = '';
+                showNotification('error', 'Erro de OCR!', 'Ocorreu uma falha ao ler o documento. Insira os dados manualmente.');
+                validationSection.classList.remove('hidden');
+            }
+        });
+        
+        function extractSection(text, keywords, stopKeywords) {
+            const textLower = text.toLowerCase();
+            let startIndex = -1;
+            let keywordFound = '';
+            for (const keyword of keywords) {
+                startIndex = textLower.indexOf(keyword.toLowerCase());
+                if (startIndex !== -1) {
+                    keywordFound = keyword;
+                    break;
+                }
+            }
+            if (startIndex === -1) return '';
+            
+            let searchFrom = startIndex + keywordFound.length;
+            let endIndex = text.length;
+            for (const stopKeyword of stopKeywords) {
+                const potentialEndIndex = textLower.indexOf(stopKeyword.toLowerCase(), searchFrom);
+                if (potentialEndIndex !== -1) {
+                    endIndex = Math.min(endIndex, potentialEndIndex);
+                }
+            }
+            let content = text.substring(searchFrom, endIndex);
+            const colonIndex = content.indexOf(':');
+            if (colonIndex !== -1 && colonIndex < 20) {
+                content = content.substring(colonIndex + 1);
+            }
+            return content.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, ' ').trim();
+        }
+
+        function parseOCRText(text) {
+            const allStopKeywords = ['riscos', 'danos', 'procedimentos', 'orientações', 'assinatura', 'data', 'medidas', 'EPI'];
+            
+            let setor = extractSection(text, ['Setor:', 'Área:', 'Departamento:'], ['Função', 'Cargo', 'Atividades']);
+            let funcao = extractSection(text, ['Função:', 'Cargo:'], ['Atividades', 'Descrição', 'EPI']);
+            const atividades = extractSection(text, ['Atividades:', 'Descrição da Função:', 'Tarefas:'], allStopKeywords);
+            const epis = extractSection(text, ['EPIs Recomendados', 'EPI:', 'Equipamentos de Proteção Individual'], allStopKeywords);
+            const medicoes = extractSection(text, ['Medições', 'Avaliações Ambientais', 'Resultados das Avaliações'], allStopKeywords);
+
+            ocrStatus.textContent = `✅ Documento processado. Valide os dados abaixo.`;
+            manualSetor.value = formatAsTitle(setor);
+            manualFuncao.value = formatAsTitle(funcao);
+            manualAtividades.value = atividades;
+            manualEpi.value = epis;
+            manualMedicoes.value = medicoes;
+            validationSection.classList.remove('hidden');
+            checkFormReadiness();
+        }
+
+        function checkFormReadiness() {
+            const employeeSelected = employeeSelect.value !== "";
+            const setor = manualSetor.value.trim();
+            const funcao = manualFuncao.value.trim();
+            generatePdfBtn.disabled = !(employeeSelected && setor && funcao);
+        }
+
+        [employeeSelect, manualSetor, manualFuncao].forEach(el => el.addEventListener('input', checkFormReadiness));
+
+        function validateForm() {
+            let isValid = true;
+            const fieldsToValidate = [
+                { el: employeeSelect, msg: 'Selecione um funcionário.' },
+                { el: manualSetor, msg: 'Preencha o campo Setor.' },
+                { el: manualFuncao, msg: 'Preencha o campo Função.' }
+            ];
+            fieldsToValidate.forEach(field => field.el.classList.remove('blinking-border'));
+            hideNotification();
+            let missingFieldsMessages = [];
+            fieldsToValidate.forEach(field => {
+                if (!field.el.value.trim()) {
+                    isValid = false;
+                    field.el.classList.add('blinking-border');
+                    missingFieldsMessages.push(field.msg);
+                }
+            });
+            if (!isValid) {
+                showNotification('warning', 'Campos Obrigatórios!', missingFieldsMessages.join(' '));
+            }
+            return isValid;
+        }
+
+        generatePdfBtn.addEventListener('click', () => {
+            if (!validateForm()) return;
+            try {
+                const employee = employeeData[employeeSelect.value];
+                const setor = manualSetor.value.trim();
+                const funcao = manualFuncao.value.trim();
+                updatePreview(employee, setor, funcao);
+                const employeeName = employee['Nome do Funcionário'];
+                const fileName = `OS - ${employeeName}.pdf`;
+                const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+                html2pdf().from(document.getElementById('os-preview')).set(options).save().then(() => {
+                    addToReport({ 
+                        nome: formatAsTitle(employeeName), 
+                        setor: formatAsTitle(setor), 
+                        funcao: formatAsTitle(funcao) 
+                    });
+                });
+            } catch (error) {
+                showNotification('error', 'Erro na Geração do PDF!', 'Não foi possível criar o arquivo PDF. Tente novamente.');
+            }
+        });
+        
+        function getCombinedRisks(category) {
+            const selectedRisks = Array.from(document.querySelectorAll(`#risk-${category}-checkboxes input:checked`)).map(cb => cb.value);
+            const otherRisk = document.getElementById(`risk-${category}-outro`).value.trim();
+            if (otherRisk) selectedRisks.push(otherRisk);
+            return selectedRisks.join(', ') || defaultText;
+        }
+
+        function updatePreview(employee, setor, funcao) {
+            const previewContainer = document.getElementById('os-preview');
+            const atividadesText = manualAtividades.value.trim() || 'Não identificado no momento da avaliação.';
+            const epiText = manualEpi.value.trim() || 'Não identificado no momento da avaliação.';
+            const medicoesText = manualMedicoes.value.trim() || 'Não identificado no momento da avaliação.';
+            
+            const formattedEmployeeName = formatAsTitle(employee['Nome do Funcionário'] || 'N/A');
+            const formattedSetor = formatAsTitle(setor);
+            const formattedFuncao = formatAsTitle(funcao);
+
+            previewContainer.innerHTML = `
+                <h2>ORDEM DE SERVIÇO - SEGURANÇA E SAÚDE NO TRABALHO (NR-01)</h2>
+                <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor...</p>
+                <table class="header-table">
+                    <tr><td colspan="2"><strong>Empresa:</strong> Bombril</td><td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td></tr>
+                    <tr><td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td><td colspan="2"><strong>Data de Admissão:</strong> ${employee['Data de Admissão'] || 'N/A'}</td></tr>
+                    <tr><td colspan="2"><strong>Setor de Trabalho:</strong> ${formattedSetor}</td><td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td></tr>
+                </table>
+                <h3>TAREFAS DA FUNÇÃO</h3>
+                <p>${atividadesText}</p>
+                <h3>AGENTES DE RISCOS OCUPACIONAIS</h3>
+                <table>
+                    <tr><td><strong>Físico:</strong> ${getCombinedRisks('fisico')}</td><td><strong>Acidente:</strong> ${getCombinedRisks('acidente')}</td></tr>
+                    <tr><td><strong>Químico:</strong> ${getCombinedRisks('quimico')}</td><td><strong>Biológico:</strong> ${getCombinedRisks('biologico')}</td></tr>
+                    <tr><td colspan="2"><strong>Ergonômicos:</strong> ${getCombinedRisks('ergonomico')}</td></tr>
+                </table>
+                <h3>POSSÍVEIS DANOS À SAÚDE</h3>
+                <table>
+                    <tr><td><strong>Físico:</strong> ${document.getElementById('damage-fisico').value.trim() || defaultText}</td><td><strong>Acidente:</strong> ${document.getElementById('damage-acidente').value.trim() || defaultText}</td></tr>
+                    <tr><td><strong>Químico:</strong> ${document.getElementById('damage-quimico').value.trim() || defaultText}</td><td><strong>Biológico:</strong> ${document.getElementById('damage-biologico').value.trim() || defaultText}</td></tr>
+                    <tr><td colspan="2"><strong>Ergonômicos:</strong> ${document.getElementById('damage-ergonomico').value.trim() || defaultText}</td></tr>
+                </table>
+                <h3>MEDIDAS ADOTADAS PELA EMPRESA</h3>
+                <p><strong>EPI:</strong> ${epiText}</p>
+                <p>"Treinamento e Supervisão para execução das tarefas e uso dos EPI..."</p>
+                <h3>INFORME DOS RESULTADOS DAS AVALIAÇÕES AMBIENTAIS</h3>
+                <p>${medicoesText}</p>
+                <p style="margin-top: 1rem;">Conforme Art. 158 da CLT e NR-01 item 1.4.2.1...</p>
+                <table style="margin-top: 2rem; width: 100%; text-align: center; border: none;"><tr style="border: none;"><td style="border: none;">___________________________<br>SESMT</td><td style="border: none;">___________________________<br>Chefia Imediata</td></tr></table>
+                <p style="margin-top: 1rem;">Cópia recebida em: ______/______/______</p>
+                <div class="signature-line" style="margin-top: 3rem;">${formattedEmployeeName}</div>
+            `;
+        }
+        
+        function addToReport(data) { generatedOSReport.push(data); updateReportTable(); }
+        function updateReportTable() {
+            reportTableBody.innerHTML = '';
+            generatedOSReport.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.nome}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.setor}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.funcao}</td>`;
+                reportTableBody.appendChild(row);
+            });
+        }
+        
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            createRiskCards();
+            
+            // Lógica das Abas
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const target = tab.id.replace('btn', 'content');
+                    tabContents.forEach(c => c.classList.add('hidden'));
+                    document.getElementById(target).classList.remove('hidden');
+                });
+            });
+
+            // Lógica do Modo Noturno
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                sunIcon.classList.toggle('hidden');
+                moonIcon.classList.toggle('hidden');
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
