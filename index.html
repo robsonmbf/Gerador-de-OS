@@ -222,6 +222,20 @@
         const generatePdfBtn = document.getElementById('generate-pdf-btn');
         const reportTableBody = document.getElementById('report-table-body');
 
+        // --- FUNÇÕES AUXILIARES ---
+
+        function formatAsTitle(inputText) {
+            if (!inputText || typeof inputText !== 'string') return '';
+            let txt = inputText.toLowerCase().split(" ");
+            let excecoes = ["da", "de", "do", "dos", "das", "em", "para", "com", "no", "na", "nos", "nas"];
+            for (let i = 0; i < txt.length; i++) {
+                if (!excecoes.includes(txt[i]) || i === 0) {
+                    txt[i] = txt[i].charAt(0).toUpperCase() + txt[i].slice(1);
+                }
+            }
+            return txt.join(" ");
+        }
+
         function showNotification(type, title, message) {
             notificationArea.className = 'p-4 mb-4 text-sm rounded-lg';
             let typeClasses = type === 'error' ? 'bg-red-100 text-red-700' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700');
@@ -231,6 +245,8 @@
         }
 
         function hideNotification() { notificationArea.classList.add('hidden'); }
+
+        // --- LÓGICA DE CRIAÇÃO DA UI ---
 
         function createAccordion() {
             const accordionContainer = document.getElementById('risk-accordion');
@@ -283,6 +299,8 @@
             }
         }
         
+        // --- LÓGICA DE EVENTOS E MANIPULAÇÃO DE DADOS ---
+
         function handleRiskSelectionChange() {
             const categories = ['fisico', 'quimico', 'biologico', 'acidente', 'ergonomico'];
             categories.forEach(category => {
@@ -320,7 +338,7 @@
                 const employeeName = employee['Nome do Funcionário'];
                 if (employeeName) {
                     const option = document.createElement('option');
-                    option.value = index; option.textContent = employeeName;
+                    option.value = index; option.textContent = formatAsTitle(employeeName);
                     employeeSelect.appendChild(option);
                 }
             });
@@ -367,24 +385,24 @@
             }
             let content = text.substring(searchFrom, endIndex);
             const colonIndex = content.indexOf(':');
-            if (colonIndex !== -1 && colonIndex < 20) { // Check if colon is near the start
+            if (colonIndex !== -1 && colonIndex < 20) {
                 content = content.substring(colonIndex + 1);
             }
             return content.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, ' ').trim();
         }
 
         function parseOCRText(text) {
-            let setor = extractSection(text, ['Setor:', 'Área:', 'Departamento:'], ['Função', 'Cargo']);
-            let funcao = extractSection(text, ['Função:', 'Cargo:'], ['Atividades', 'Descrição', 'EPI']);
-            
             const allStopKeywords = ['riscos', 'danos', 'procedimentos', 'orientações', 'assinatura', 'data', 'medidas', 'EPI'];
+            
+            let setor = extractSection(text, ['Setor:', 'Área:', 'Departamento:'], ['Função', 'Cargo', 'Atividades']);
+            let funcao = extractSection(text, ['Função:', 'Cargo:'], ['Atividades', 'Descrição', 'EPI']);
             const atividades = extractSection(text, ['Atividades:', 'Descrição da Função:', 'Tarefas:'], allStopKeywords);
             const epis = extractSection(text, ['EPIs Recomendados', 'EPI:', 'Equipamentos de Proteção Individual'], allStopKeywords);
             const medicoes = extractSection(text, ['Medições', 'Avaliações Ambientais', 'Resultados das Avaliações'], allStopKeywords);
 
             ocrStatus.textContent = `✅ Documento processado. Valide os dados abaixo.`;
-            manualSetor.value = setor;
-            manualFuncao.value = funcao;
+            manualSetor.value = formatAsTitle(setor);
+            manualFuncao.value = formatAsTitle(funcao);
             manualAtividades.value = atividades;
             manualEpi.value = epis;
             manualMedicoes.value = medicoes;
@@ -435,7 +453,11 @@
                 const fileName = `OS - ${employeeName}.pdf`;
                 const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
                 html2pdf().from(document.getElementById('os-preview')).set(options).save().then(() => {
-                    addToReport({ nome: employeeName, setor, funcao });
+                    addToReport({ 
+                        nome: formatAsTitle(employeeName), 
+                        setor: formatAsTitle(setor), 
+                        funcao: formatAsTitle(funcao) 
+                    });
                 });
             } catch (error) {
                 showNotification('error', 'Erro na Geração do PDF!', 'Não foi possível criar o arquivo PDF. Tente novamente.');
@@ -454,13 +476,18 @@
             const atividadesText = manualAtividades.value.trim() || 'Não identificado no momento da avaliação.';
             const epiText = manualEpi.value.trim() || 'Não identificado no momento da avaliação.';
             const medicoesText = manualMedicoes.value.trim() || 'Não identificado no momento da avaliação.';
+            
+            const formattedEmployeeName = formatAsTitle(employee['Nome do Funcionário'] || 'N/A');
+            const formattedSetor = formatAsTitle(setor);
+            const formattedFuncao = formatAsTitle(funcao);
+
             previewContainer.innerHTML = `
                 <h2>ORDEM DE SERVIÇO - SEGURANÇA E SAÚDE NO TRABALHO (NR-01)</h2>
                 <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor...</p>
                 <table class="header-table">
                     <tr><td colspan="2"><strong>Empresa:</strong> Bombril</td><td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td></tr>
-                    <tr><td colspan="2"><strong>Nome do Funcionário:</strong> ${employee['Nome do Funcionário'] || 'N/A'}</td><td colspan="2"><strong>Data de Admissão:</strong> ${employee['Data de Admissão'] || 'N/A'}</td></tr>
-                    <tr><td colspan="2"><strong>Setor de Trabalho:</strong> ${setor}</td><td colspan="2"><strong>Função:</strong> ${funcao}</td></tr>
+                    <tr><td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td><td colspan="2"><strong>Data de Admissão:</strong> ${employee['Data de Admissão'] || 'N/A'}</td></tr>
+                    <tr><td colspan="2"><strong>Setor de Trabalho:</strong> ${formattedSetor}</td><td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td></tr>
                 </table>
                 <h3>TAREFAS DA FUNÇÃO</h3>
                 <p>${atividadesText}</p>
@@ -484,7 +511,7 @@
                 <p style="margin-top: 1rem;">Conforme Art. 158 da CLT e NR-01 item 1.4.2.1...</p>
                 <table style="margin-top: 2rem; width: 100%; text-align: center; border: none;"><tr style="border: none;"><td style="border: none;">___________________________<br>SESMT</td><td style="border: none;">___________________________<br>Chefia Imediata</td></tr></table>
                 <p style="margin-top: 1rem;">Cópia recebida em: ______/______/______</p>
-                <div class="signature-line" style="margin-top: 3rem;">${employee['Nome do Funcionário'] || 'N/A'}</div>
+                <div class="signature-line" style="margin-top: 3rem;">${formattedEmployeeName}</div>
             `;
         }
         
