@@ -119,44 +119,55 @@
             <div class="pt-8">
                 <!-- Aba 1: Dados Iniciais -->
                 <div id="tab-content-1" class="tab-content">
-                    <h3 class="text-xl font-semibold mb-4">Carregar Arquivos e Validar Dados</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="space-y-8">
                         <div>
-                            <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
-                            <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
-                            <label for="employee-select" class="block mt-4 mb-2 font-medium">Funcionário:</label>
-                            <select id="employee-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300"></select>
+                            <h3 class="text-xl font-semibold mb-4">1. Carregar Arquivos</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
+                                    <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
+                                </div>
+                                <div>
+                                    <label for="sst-doc-input" class="block mb-2 font-medium">1.2 - Documento de SST (PGR, etc.):</label>
+                                    <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                                    <div id="ocr-status" class="mt-2 text-sm flex items-center gap-2"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label for="sst-doc-input" class="block mb-2 font-medium">1.2 - Documento de SST (PGR, etc.):</label>
-                            <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
-                            <div id="ocr-status" class="mt-2 text-sm flex items-center gap-2"></div>
+
+                        <div class="border-t pt-6" style="border-color: var(--border-color);">
+                            <h3 class="text-xl font-semibold mb-4">2. Selecionar Funcionário</h3>
+                            <label for="employee-select" class="block mb-2 font-medium">Funcionário:</label>
+                            <select id="employee-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300">
+                                <option>Aguardando planilha...</option>
+                            </select>
                         </div>
-                    </div>
-                    <div id="validation-section" class="hidden mt-6 border-t pt-6" style="border-color: var(--border-color);">
-                        <h4 class="text-lg font-semibold mb-3">Valide os Dados Extraídos do Documento</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
-                                <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300">
-                            </div>
-                            <div>
-                                <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
-                                <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
-                                <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
-                                <textarea id="manual-epi" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma informação de EPI encontrada..."></textarea>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
-                                <textarea id="manual-medicoes" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma medição encontrada..."></textarea>
+
+                        <div id="validation-section" class="hidden border-t pt-6" style="border-color: var(--border-color);">
+                            <h3 class="text-xl font-semibold mb-4">3. Validar Dados Extraídos</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
+                                    <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300">
+                                </div>
+                                <div>
+                                    <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
+                                    <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
+                                    <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
+                                    <textarea id="manual-epi" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma informação de EPI encontrada..."></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
+                                    <textarea id="manual-medicoes" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma medição encontrada..."></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -392,6 +403,7 @@
         });
 
         function populateEmployeeSelect() {
+            employeeSelect.innerHTML = '<option>Aguardando planilha...</option>';
             employeeSelect.innerHTML = '<option value="">-- Selecione um funcionário --</option>';
             employeeData.forEach((employee, index) => {
                 const employeeName = employee['Nome do Funcionário'];
@@ -637,4 +649,4 @@
         });
     </script>
 </body>
-</html>
+</ht
