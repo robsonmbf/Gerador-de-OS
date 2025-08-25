@@ -26,6 +26,8 @@
             --tab-inactive-color: #6b7280;
             --tab-active-color: #2563eb;
             --tab-active-bg: #eff6ff;
+            --progress-bg: #e5e7eb;
+            --progress-fill: #3b82f6;
 
             /* Cores dos Riscos - Modo Claro */
             --risk-acidente-color: #2563eb;  /* Azul */
@@ -47,6 +49,8 @@
             --tab-inactive-color: #9ca3af;
             --tab-active-color: #60a5fa;
             --tab-active-bg: #1e293b;
+            --progress-bg: #374151;
+            --progress-fill: #60a5fa;
             
             /* Cores dos Riscos - Modo Escuro (mais claras para contraste) */
             --risk-acidente-color: #60a5fa;    /* Azul Claro */
@@ -78,13 +82,32 @@
             border-radius: 0.5rem; 
             padding: 0.75rem; 
         }
-        #os-preview { font-family: 'Times New Roman', Times, serif; color: #000; background: #fff; padding: 2rem; border: 1px solid #ccc; line-height: 1.5; }
-        #os-preview h2, #os-preview h3 { font-weight: bold; text-align: center; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 12pt; }
-        #os-preview p { text-align: justify; margin-bottom: 1rem; font-size: 11pt; }
-        #os-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 11pt; }
-        #os-preview td { border: 1px solid #000; padding: 4px 8px; vertical-align: top; }
-        #os-preview .header-table td { font-weight: bold; }
-        #os-preview .signature-line { border-top: 1px solid #000; margin-top: 3rem; text-align: center; padding-top: 0.5rem; }
+        #os-preview, #live-os-preview { 
+            font-family: 'Times New Roman', Times, serif; 
+            color: #000; 
+            background: #fff; 
+            padding: 2rem; 
+            border: 1px solid #ccc; 
+            line-height: 1.5; 
+        }
+        #os-preview h2, #os-preview h3, #live-os-preview h2, #live-os-preview h3 { 
+            font-weight: bold; text-align: center; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 12pt; 
+        }
+        #os-preview p, #live-os-preview p { 
+            text-align: justify; margin-bottom: 1rem; font-size: 11pt; 
+        }
+        #os-preview table, #live-os-preview table { 
+            width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 11pt; 
+        }
+        #os-preview td, #live-os-preview td { 
+            border: 1px solid #000; padding: 4px 8px; vertical-align: top; 
+        }
+        #os-preview .header-table td, #live-os-preview .header-table td { 
+            font-weight: bold; 
+        }
+        #os-preview .signature-line, #live-os-preview .signature-line { 
+            border-top: 1px solid #000; margin-top: 3rem; text-align: center; padding-top: 0.5rem; 
+        }
         .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 24px; height: 24px; animation: spin 2s linear infinite; }
         .blinking-border { animation: blink 1s 3; }
         .tab-button { color: var(--tab-inactive-color); }
@@ -95,6 +118,34 @@
             color: var(--text-color);
         }
         input::placeholder, textarea::placeholder { color: var(--input-placeholder-color); }
+        
+        /* Estilos para o Checklist e Barra de Progresso */
+        .checklist-item { transition: all 0.3s ease; }
+        .checklist-item.completed { color: #16a34a; }
+        .checklist-item.completed .status-icon { background-color: #16a34a; color: white; }
+        .status-icon {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: bold; border: 2px solid;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--progress-bg);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 1.25rem;
+            background-color: var(--progress-fill);
+            width: 0%;
+            transition: width 0.4s ease;
+            text-align: center;
+            line-height: 1.25rem;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
         @keyframes blink { 50% { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -132,55 +183,85 @@
             <div class="pt-8">
                 <!-- Aba 1: Dados Iniciais -->
                 <div id="tab-content-1" class="tab-content">
-                    <div class="space-y-8">
-                        <div>
-                            <h3 class="text-xl font-semibold mb-4">1. Carregar Arquivos</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
-                                    <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
-                                </div>
-                                <div>
-                                    <label for="sst-doc-input" class="block mb-2 font-medium">1.2 - Documento de SST (PGR, etc.):</label>
-                                    <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
-                                    <div id="ocr-status" class="mt-2 text-sm flex items-center gap-2"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Coluna do Checklist -->
+                        <div class="md:col-span-1 border-r pr-8" style="border-color: var(--border-color);">
+                            <h3 class="text-xl font-semibold mb-4">Checklist de Etapas</h3>
+                            <ul class="space-y-4">
+                                <li id="checklist-xlsx" class="checklist-item flex items-center gap-3">
+                                    <span class="status-icon">1</span>
+                                    <span>Carregar planilha de funcionários</span>
+                                </li>
+                                <li id="checklist-doc" class="checklist-item flex items-center gap-3">
+                                    <span class="status-icon">2</span>
+                                    <span>Carregar documento de SST</span>
+                                </li>
+                                <li id="checklist-employee" class="checklist-item flex items-center gap-3">
+                                    <span class="status-icon">3</span>
+                                    <span>Selecionar funcionário</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Coluna de Conteúdo Principal -->
+                        <div class="md:col-span-2 space-y-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">1. Carregar Arquivos</h3>
+                                <div class="grid grid-cols-1 gap-8">
+                                    <div>
+                                        <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
+                                        <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'. Opcional: 'Setor', 'Função', 'Descrição das Atividades', 'EPIs'.</p>
+                                    </div>
+                                    <div>
+                                        <label for="sst-doc-input" class="block mb-2 font-medium">1.2 - Documento de SST (PGR, etc.):</label>
+                                        <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                                        <div id="ocr-status" class="mt-2 text-sm"></div>
+                                        <div id="progress-container" class="hidden mt-2">
+                                            <div class="progress-bar-container">
+                                                <div id="progress-bar" class="progress-bar">0%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="logo-input" class="block mb-2 font-medium">1.3 - Logotipo da Empresa (Opcional):</label>
+                                        <input type="file" id="logo-input" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="border-t pt-6" style="border-color: var(--border-color);">
-                            <h3 class="text-xl font-semibold mb-4">2. Selecionar Funcionário</h3>
-                            <label for="employee-select" class="block mb-2 font-medium">Funcionário:</label>
-                            <select id="employee-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300">
-                                <option>Aguardando planilha...</option>
-                            </select>
-                        </div>
+                            <div class="border-t pt-6" style="border-color: var(--border-color);">
+                                <h3 class="text-xl font-semibold mb-4">2. Selecionar Funcionário</h3>
+                                <label for="employee-select" class="block mb-2 font-medium">Funcionário:</label>
+                                <select id="employee-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300">
+                                    <option>Aguardando planilha...</option>
+                                </select>
+                            </div>
 
-                        <div id="validation-section" class="hidden border-t pt-6" style="border-color: var(--border-color);">
-                            <h3 class="text-xl font-semibold mb-4">3. Validar Dados Extraídos</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
-                                    <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300">
-                                </div>
-                                <div>
-                                    <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
-                                    <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300">
-                                </div>
-                                <!-- CAMPO DE DESCRIÇÃO DE ATIVIDADES -->
-                                <div class="md:col-span-2">
-                                    <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
-                                    <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
-                                    <textarea id="manual-epi" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma informação de EPI encontrada..."></textarea>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
-                                    <textarea id="manual-medicoes" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma medição encontrada..."></textarea>
+                            <div id="validation-section" class="hidden border-t pt-6" style="border-color: var(--border-color);">
+                                <h3 class="text-xl font-semibold mb-4">3. Validar Dados Extraídos</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
+                                        <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300">
+                                    </div>
+                                    <div>
+                                        <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
+                                        <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
+                                        <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
+                                        <textarea id="manual-epi" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma informação de EPI encontrada..."></textarea>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
+                                        <textarea id="manual-medicoes" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma medição encontrada..."></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -196,32 +277,44 @@
 
                 <!-- Aba 3: Finalizar e Relatório -->
                 <div id="tab-content-3" class="tab-content hidden">
-                    <div class="text-center mb-8">
-                       <h3 class="text-xl font-semibold mb-4">Gerar Ordem de Serviço</h3>
-                        <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                            Gerar PDF da Ordem de Serviço
-                        </button>
-                    </div>
-                    <div class="border-t pt-8" style="border-color: var(--border-color);">
-                        <h3 class="text-xl font-semibold mb-4">Relatório de OS Geradas (nesta sessão)</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full border" style="border-color: var(--border-color);">
-                                <thead style="background-color: var(--accordion-header-bg);">
-                                    <tr>
-                                        <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Nome do Funcionário</th>
-                                        <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Setor</th>
-                                        <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Função</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-table-body"></tbody>
-                            </table>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <div class="text-center mb-8">
+                               <h3 class="text-xl font-semibold mb-4">Gerar Ordem de Serviço</h3>
+                                <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                    Gerar PDF da Ordem de Serviço
+                                </button>
+                            </div>
+                            <div class="border-t pt-8" style="border-color: var(--border-color);">
+                                <h3 class="text-xl font-semibold mb-4">Relatório de OS Geradas (nesta sessão)</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full border" style="border-color: var(--border-color);">
+                                        <thead style="background-color: var(--accordion-header-bg);">
+                                            <tr>
+                                                <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Nome do Funcionário</th>
+                                                <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Setor</th>
+                                                <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Função</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="report-table-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                             <h3 class="text-xl font-semibold mb-4 text-center">Pré-visualização da OS</h3>
+                             <div id="live-os-preview-container" class="max-h-[80vh] overflow-y-auto">
+                                <div id="live-os-preview">
+                                    <p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que um funcionário for selecionado.</p>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Área de Pré-visualização (oculta) -->
+        <!-- Área de Pré-visualização para PDF (oculta) -->
         <div id="os-container" class="hidden"><div id="os-preview"></div></div>
     </div>
 
@@ -285,7 +378,13 @@
         // --- LÓGICA DA APLICAÇÃO ---
         let employeeData = [];
         let generatedOSReport = [];
+        let logoDataUrl = null;
         const defaultText = "Não identificado no momento da avaliação.";
+        const checklistStatus = {
+            xlsx: false,
+            doc: false,
+            employee: false
+        };
 
         // DOM Elements
         const notificationArea = document.getElementById('notification-area');
@@ -294,6 +393,7 @@
         const xlsxInput = document.getElementById('xlsx-input');
         const employeeSelect = document.getElementById('employee-select');
         const sstDocInput = document.getElementById('sst-doc-input');
+        const logoInput = document.getElementById('logo-input');
         const ocrStatus = document.getElementById('ocr-status');
         const validationSection = document.getElementById('validation-section');
         const manualSetor = document.getElementById('manual-setor');
@@ -306,6 +406,9 @@
         const themeToggle = document.getElementById('theme-toggle');
         const sunIcon = document.getElementById('theme-toggle-sun');
         const moonIcon = document.getElementById('theme-toggle-moon');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const liveOsPreview = document.getElementById('live-os-preview');
 
         // --- FUNÇÕES AUXILIARES ---
 
@@ -330,6 +433,22 @@
         }
 
         function hideNotification() { notificationArea.classList.add('hidden'); }
+        
+        // --- LÓGICA DO CHECKLIST ---
+        function updateChecklist(item, isComplete) {
+            checklistStatus[item] = isComplete;
+            const element = document.getElementById(`checklist-${item}`);
+            const icon = element.querySelector('.status-icon');
+            if (isComplete) {
+                element.classList.add('completed');
+                icon.innerHTML = '&#10003;'; // Checkmark
+            } else {
+                element.classList.remove('completed');
+                const number = item === 'xlsx' ? '1' : (item === 'doc' ? '2' : '3');
+                icon.innerHTML = number;
+            }
+            checkFormReadiness();
+        }
 
         // --- LÓGICA DE CRIAÇÃO DA UI ---
 
@@ -344,7 +463,6 @@
                 ergonomico: { title: 'Risco Ergonômico', colorVar: '--risk-ergonomico-color' }
             };
 
-            // Ordem de exibição desejada
             const displayOrder = ['acidente', 'ergonomico', 'quimico', 'fisico', 'biologico'];
 
             for (const key of displayOrder) {
@@ -366,6 +484,8 @@
                     </div>
                 `;
                 container.appendChild(card);
+                // Adiciona listener para atualização da preview ao vivo
+                container.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', updateLivePreview));
             }
             populateRiskCheckboxes();
         }
@@ -383,7 +503,10 @@
                         input.className = 'rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600';
                         const span = document.createElement('span'); span.textContent = risk;
                         label.appendChild(input); label.appendChild(span); container.appendChild(label);
-                        input.addEventListener('change', handleRiskSelectionChange);
+                        input.addEventListener('change', () => {
+                            handleRiskSelectionChange();
+                            updateLivePreview();
+                        });
                     }
                 }
             }
@@ -407,7 +530,10 @@
 
         xlsxInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                updateChecklist('xlsx', false);
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -415,8 +541,10 @@
                     const workbook = XLSX.read(data, { type: 'array' });
                     employeeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                     populateEmployeeSelect();
+                    updateChecklist('xlsx', true);
                 } catch (error) {
                     showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique o formato (.xlsx) e as colunas.');
+                    updateChecklist('xlsx', false);
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -426,7 +554,7 @@
             employeeSelect.innerHTML = '<option>Aguardando planilha...</option>';
             employeeSelect.innerHTML = '<option value="">-- Selecione um funcionário --</option>';
             employeeData.forEach((employee, index) => {
-                const employeeName = employee['Nome do Funcionário'];
+                const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
                 if (employeeName) {
                     const option = document.createElement('option');
                     option.value = index; option.textContent = formatAsTitle(employeeName);
@@ -439,76 +567,150 @@
 
         sstDocInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
-            if (!file) return;
-            ocrStatus.innerHTML = '<div class="loader"></div> <span>Processando documento... Pode levar alguns instantes.</span>';
+            if (!file) {
+                updateChecklist('doc', false);
+                return;
+            }
+            ocrStatus.textContent = 'Iniciando análise do documento...';
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
             validationSection.classList.add('hidden');
             hideNotification();
+
             try {
-                const { data: { text } } = await Tesseract.recognize(file, 'por');
+                const worker = await Tesseract.createWorker('por', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            progressBar.style.width = `${progress}%`;
+                            progressBar.textContent = `${progress}%`;
+                        }
+                    },
+                });
+                const { data: { text } } = await worker.recognize(file);
+                await worker.terminate();
+
                 parseOCRText(text);
+                updateDetailsFromSources();
+                updateChecklist('doc', true);
             } catch (error) {
                 ocrStatus.textContent = '';
-                showNotification('error', 'Erro de OCR!', 'Ocorreu uma falha ao ler o documento. Insira os dados manualmente.');
+                progressContainer.classList.add('hidden');
+                showNotification('error', 'Erro de OCR!', 'Ocorreu uma falha ao ler o documento. Tentando carregar dados da planilha...');
                 validationSection.classList.remove('hidden');
+                updateDetailsFromSources();
+                updateChecklist('doc', true);
             }
         });
         
-        function extractSection(text, keywords, stopKeywords) {
-            const textLower = text.toLowerCase();
-            let startIndex = -1;
-            let keywordFound = '';
-            for (const keyword of keywords) {
-                startIndex = textLower.indexOf(keyword.toLowerCase());
-                if (startIndex !== -1) {
-                    keywordFound = keyword;
-                    break;
+        logoInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                logoDataUrl = null;
+                updateLivePreview();
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                logoDataUrl = e.target.result;
+                updateLivePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+
+
+        employeeSelect.addEventListener('change', () => {
+            updateDetailsFromSources();
+            updateChecklist('employee', employeeSelect.value !== "");
+            updateLivePreview();
+        });
+        
+        function parseOCRText(text) {
+            const sections = {};
+            const keywords = {
+                setor: /\b(setor|área|departamento)\s*:\s*/i,
+                funcao: /\b(função|cargo)\s*:\s*/i,
+                atividades: /\b(atividades|descrição\s+d[ao](s)?\s+(função|atividades)|tarefas)\s*:\s*/i,
+                epi: /\b(EPIs?|equipamentos\s+de\s+proteção\s+individual)\s*:\s*/i,
+                medicoes: /\b(medições|avaliações\s+ambientais|resultados\s+das\s+avaliações)\s*:\s*/i
+            };
+
+            const foundMatches = [];
+            for (const key in keywords) {
+                const match = text.match(keywords[key]);
+                if (match) {
+                    foundMatches.push({ key: key, index: match.index, length: match[0].length });
                 }
             }
-            if (startIndex === -1) return '';
-            
-            let searchFrom = startIndex + keywordFound.length;
-            let endIndex = text.length;
-            for (const stopKeyword of stopKeywords) {
-                const potentialEndIndex = textLower.indexOf(stopKeyword.toLowerCase(), searchFrom);
-                if (potentialEndIndex !== -1) {
-                    endIndex = Math.min(endIndex, potentialEndIndex);
-                }
+
+            foundMatches.sort((a, b) => a.index - b.index);
+
+            for (let i = 0; i < foundMatches.length; i++) {
+                const currentMatch = foundMatches[i];
+                const nextMatch = foundMatches[i + 1];
+
+                const startIndex = currentMatch.index + currentMatch.length;
+                const endIndex = nextMatch ? nextMatch.index : text.length;
+
+                let content = text.substring(startIndex, endIndex);
+                sections[currentMatch.key] = content.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, ' ').trim();
             }
-            let content = text.substring(searchFrom, endIndex);
-            const colonIndex = content.indexOf(':');
-            if (colonIndex !== -1 && colonIndex < 20) {
-                content = content.substring(colonIndex + 1);
-            }
-            return content.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, ' ').trim();
+
+            ocrStatus.textContent = `✅ Documento processado. Validando com dados da planilha...`;
+            progressContainer.classList.add('hidden');
+            manualSetor.value = formatAsTitle(sections.setor || '');
+            manualFuncao.value = formatAsTitle(sections.funcao || '');
+            manualAtividades.value = sections.atividades || '';
+            manualEpi.value = sections.epi || '';
+            manualMedicoes.value = sections.medicoes || '';
         }
 
-        function parseOCRText(text) {
-            const allStopKeywords = ['riscos', 'danos', 'procedimentos', 'orientações', 'assinatura', 'data', 'medidas', 'EPI'];
-            
-            let setor = extractSection(text, ['Setor:', 'Área:', 'Departamento:'], ['Função', 'Cargo', 'Atividades']);
-            let funcao = extractSection(text, ['Função:', 'Cargo:'], ['Atividades', 'Descrição', 'EPI']);
-            const atividades = extractSection(text, ['Atividades:', 'Descrição da Função:', 'Descrição das Atividades:', 'Tarefas:'], allStopKeywords);
-            const epis = extractSection(text, ['EPIs Recomendados', 'EPI:', 'Equipamentos de Proteção Individual'], allStopKeywords);
-            const medicoes = extractSection(text, ['Medições', 'Avaliações Ambientais', 'Resultados das Avaliações'], allStopKeywords);
+        function findValueInObject(obj, keys) {
+            if (!obj) return null;
+            const objKeys = Object.keys(obj);
+            for (const key of keys) {
+                const foundKey = objKeys.find(objKey => objKey.toLowerCase() === key.toLowerCase());
+                if (foundKey) {
+                    return obj[foundKey];
+                }
+            }
+            return null;
+        }
 
-            ocrStatus.textContent = `✅ Documento processado. Valide os dados abaixo.`;
-            manualSetor.value = formatAsTitle(setor);
-            manualFuncao.value = formatAsTitle(funcao);
-            manualAtividades.value = atividades;
-            manualEpi.value = epis;
-            manualMedicoes.value = medicoes;
+        function updateDetailsFromSources() {
+            const selectedIndex = employeeSelect.value;
+            if (selectedIndex === "" || !employeeData[selectedIndex]) {
+                return;
+            }
+            const employee = employeeData[selectedIndex];
             validationSection.classList.remove('hidden');
+
+            const fieldMapping = {
+                'manual-setor': ['Setor', 'Área', 'Departamento'],
+                'manual-funcao': ['Função', 'Cargo'],
+                'manual-atividades': ['Atividades', 'Descrição da Função', 'Descrição das Atividades', 'Tarefas'],
+                'manual-epi': ['EPIs', 'EPIs Recomendados', 'Equipamentos de Proteção Individual', 'EPI']
+            };
+
+            for (const inputId in fieldMapping) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement.value.trim() === '') {
+                    const valueFromSheet = findValueInObject(employee, fieldMapping[inputId]);
+                    if (valueFromSheet) {
+                        inputElement.value = valueFromSheet;
+                    }
+                }
+            }
             checkFormReadiness();
         }
 
         function checkFormReadiness() {
-            const employeeSelected = employeeSelect.value !== "";
-            const setor = manualSetor.value.trim();
-            const funcao = manualFuncao.value.trim();
-            generatePdfBtn.disabled = !(employeeSelected && setor && funcao);
+            const allChecked = Object.values(checklistStatus).every(status => status);
+            generatePdfBtn.disabled = !allChecked;
         }
 
-        [employeeSelect, manualSetor, manualFuncao].forEach(el => el.addEventListener('input', checkFormReadiness));
+        [manualSetor, manualFuncao, manualAtividades, manualEpi, manualMedicoes].forEach(el => el.addEventListener('input', updateLivePreview));
 
         function validateForm() {
             let isValid = true;
@@ -535,24 +737,21 @@
 
         generatePdfBtn.addEventListener('click', () => {
             if (!validateForm()) return;
-            try {
-                const employee = employeeData[employeeSelect.value];
-                const setor = manualSetor.value.trim();
-                const funcao = manualFuncao.value.trim();
-                updatePreview(employee, setor, funcao);
-                const employeeName = employee['Nome do Funcionário'];
-                const fileName = `OS - ${employeeName}.pdf`;
-                const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-                html2pdf().from(document.getElementById('os-preview')).set(options).save().then(() => {
-                    addToReport({ 
-                        nome: formatAsTitle(employeeName), 
-                        setor: formatAsTitle(setor), 
-                        funcao: formatAsTitle(funcao) 
-                    });
+            const previewContent = document.getElementById('live-os-preview').innerHTML;
+            document.getElementById('os-preview').innerHTML = previewContent;
+            
+            const employee = employeeData[employeeSelect.value];
+            const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
+            const fileName = `OS - ${employeeName}.pdf`;
+            const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+            
+            html2pdf().from(document.getElementById('os-preview')).set(options).save().then(() => {
+                addToReport({ 
+                    nome: formatAsTitle(employeeName), 
+                    setor: formatAsTitle(manualSetor.value), 
+                    funcao: formatAsTitle(manualFuncao.value) 
                 });
-            } catch (error) {
-                showNotification('error', 'Erro na Geração do PDF!', 'Não foi possível criar o arquivo PDF. Tente novamente.');
-            }
+            });
         });
         
         function getCombinedRisks(category) {
@@ -562,23 +761,46 @@
             return selectedRisks.join(', ') || defaultText;
         }
 
-        function updatePreview(employee, setor, funcao) {
-            const previewContainer = document.getElementById('os-preview');
+        function updateLivePreview() {
+            if (employeeSelect.value === "") {
+                liveOsPreview.innerHTML = `<p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que um funcionário for selecionado.</p>`;
+                return;
+            }
+            
+            const employee = employeeData[employeeSelect.value];
+            const setor = manualSetor.value.trim();
+            const funcao = manualFuncao.value.trim();
+
             const atividadesText = manualAtividades.value.trim() || defaultText;
             const epiText = manualEpi.value.trim() || defaultText;
             const medicoesText = manualMedicoes.value.trim() || defaultText;
             
-            const formattedEmployeeName = formatAsTitle(employee['Nome do Funcionário'] || 'N/A');
+            const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']) || 'N/A';
+            const admissionDate = findValueInObject(employee, ['Data de Admissão']) || 'N/A';
+            const formattedEmployeeName = formatAsTitle(employeeName);
             const formattedSetor = formatAsTitle(setor);
             const formattedFuncao = formatAsTitle(funcao);
+            
+            const logoHtml = logoDataUrl ? `<img src="${logoDataUrl}" alt="Logotipo" style="max-width: 150px; max-height: 80px; object-fit: contain;">` : '';
 
-            previewContainer.innerHTML = `
+            liveOsPreview.innerHTML = `
                 <h2>ORDEM DE SERVIÇO - SEGURANÇA E SAÚDE NO TRABALHO (NR-01)</h2>
-                <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor...</p>
                 <table class="header-table">
-                    <tr><td colspan="2"><strong>Empresa:</strong> [Nome da Empresa]</td><td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td></tr>
-                    <tr><td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td><td colspan="2"><strong>Data de Admissão:</strong> ${employee['Data de Admissão'] || 'N/A'}</td></tr>
-                    <tr><td colspan="2"><strong>Setor de Trabalho:</strong> ${formattedSetor}</td><td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td></tr>
+                    <tr>
+                        <td rowspan="3" style="width: 160px; text-align: center; vertical-align: middle; border-right: 1px solid #000;">
+                            ${logoHtml}
+                        </td>
+                        <td colspan="2"><strong>Empresa:</strong> [Nome da Empresa]</td>
+                        <td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td>
+                        <td colspan="2"><strong>Data de Admissão:</strong> ${admissionDate}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>Setor de Trabalho:</strong> ${formattedSetor}</td>
+                        <td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td>
+                    </tr>
                 </table>
                 <h3>DESCRIÇÃO DAS ATIVIDADES (TAREFAS DA FUNÇÃO)</h3>
                 <p>${atividadesText}</p>
