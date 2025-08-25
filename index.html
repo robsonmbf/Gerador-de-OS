@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Ordem de Serviço (OS) com OCR Avançado</title>
+    <title>Gerador de Ordem de Serviço (OS) com IA</title>
     <!-- Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (xlsx) para ler arquivos Excel -->
@@ -180,7 +180,7 @@
 
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-8 relative">
-            <h1 class="text-4xl font-bold header-text">Gerador Automatizado de Ordem de Serviço</h1>
+            <h1 class="text-4xl font-bold header-text">Gerador de Ordem de Serviço com IA</h1>
             <p class="text-lg mt-2 header-text">Um assistente inteligente para as suas necessidades de SST.</p>
             <button id="theme-toggle" class="absolute top-0 right-0 p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
                 <!-- Ícone de Sol (Modo Claro) -->
@@ -604,7 +604,7 @@
                 updateChecklist('doc', false);
                 return;
             }
-            ocrStatus.textContent = 'Iniciando análise do documento...';
+            ocrStatus.innerHTML = '<div class="loader"></div> <span>Convertendo documento para texto...</span>';
             progressContainer.classList.remove('hidden');
             progressBar.style.width = '0%';
             progressBar.textContent = '0%';
@@ -623,14 +623,15 @@
                 });
                 const { data: { text } } = await worker.recognize(file);
                 await worker.terminate();
+                
+                ocrStatus.innerHTML = '<div class="loader"></div> <span>Analisando texto com IA...</span>';
+                await analyzeTextWithAI(text);
 
-                parseOCRText(text);
-                updateDetailsFromSources();
-                updateChecklist('doc', true);
             } catch (error) {
+                console.error("Erro no processo de OCR ou IA:", error);
                 ocrStatus.textContent = '';
                 progressContainer.classList.add('hidden');
-                showNotification('error', 'Erro de OCR!', 'Ocorreu uma falha ao ler o documento. Tentando carregar dados da planilha...');
+                showNotification('error', 'Erro de Leitura!', 'Ocorreu uma falha ao ler o documento. Tentando carregar dados da planilha...');
                 validationSection.classList.remove('hidden');
                 updateDetailsFromSources();
                 updateChecklist('doc', true);
@@ -659,64 +660,111 @@
             updateLivePreview();
         });
         
-        function parseOCRText(text) {
-            const sections = {};
-            const keywords = {
-                setor: /\b(setor|área|departamento)\s*:\s*/i,
-                funcao: /\b(função|cargo|função de acordo com e-social)\s*:\s*/i,
-                atividades: /\b(atividades|descrição\s+d[ao](s)?\s+(função|atividades)|tarefas|descrição\s+de\s+função)\s*:\s*/i,
-                epi: /\b(EPIs?|equipamentos\s+de\s+proteção\s+individual|EPI\s+com\s+C\.A)\s*:\s*/i,
-                medicoes: /\b(medições|avaliações\s+ambientais|resultados\s+das\s+avaliações|agentes\s+ambientais)\s*:\s*/i
+        // --- LÓGICA DE IA ---
+        async function analyzeTextWithAI(text) {
+            const prompt = `
+                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, extraído de um documento de SST (como LTCAT ou PGR), e retorne as informações em um formato JSON estruturado.
+                O texto pode conter tabelas e seções mal formatadas. Sua tarefa é interpretar o conteúdo e extrair os seguintes dados para a FUNÇÃO PRINCIPAL mencionada no documento:
+                
+                1.  **setor**: O nome do setor ou departamento.
+                2.  **funcao**: O nome da função ou cargo.
+                3.  **atividades**: A descrição detalhada das atividades da função.
+                4.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
+                5.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
+
+                Se uma informação não for encontrada, retorne uma string vazia para aquele campo ou uma lista vazia para 'epis' e 'medicoes'.
+
+                Texto para análise:
+                ---
+                ${text}
+                ---
+            `;
+
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            setor: { type: "STRING" },
+                            funcao: { type: "STRING" },
+                            atividades: { type: "STRING" },
+                            epis: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        nome: { type: "STRING" },
+                                        ca: { type: "STRING" }
+                                    }
+                                }
+                            },
+                            medicoes: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        agente: { type: "STRING" },
+                                        valor: { type: "STRING" },
+                                        unidade: { type: "STRING" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             };
 
-            const foundMatches = [];
-            for (const key in keywords) {
-                const match = text.match(keywords[key]);
-                if (match) {
-                    foundMatches.push({ key: key, index: match.index, length: match[0].length });
+            try {
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
                 }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
+                    const jsonText = result.candidates[0].content.parts[0].text;
+                    const parsedData = JSON.parse(jsonText);
+                    populateFieldsFromAI(parsedData);
+                    updateChecklist('doc', true);
+                    ocrStatus.textContent = '✅ Análise com IA concluída!';
+                    progressContainer.classList.add('hidden');
+                } else {
+                    throw new Error("Resposta da IA em formato inesperado.");
+                }
+
+            } catch (error) {
+                console.error("Erro na análise com IA:", error);
+                showNotification('warning', 'Falha na IA', 'A análise com IA falhou. Usando o método de extração padrão.');
+                // Fallback para o método antigo se a IA falhar
+                parseOCRText(text);
+                updateDetailsFromSources();
+                updateChecklist('doc', true);
             }
+        }
+        
+        function populateFieldsFromAI(data) {
+            manualSetor.value = formatAsTitle(data.setor || '');
+            manualFuncao.value = formatAsTitle(data.funcao || '');
+            manualAtividades.value = data.atividades || '';
 
-            foundMatches.sort((a, b) => a.index - b.index);
-
-            for (let i = 0; i < foundMatches.length; i++) {
-                const currentMatch = foundMatches[i];
-                const nextMatch = foundMatches[i + 1];
-
-                const startIndex = currentMatch.index + currentMatch.length;
-                const endIndex = nextMatch ? nextMatch.index : text.length;
-
-                let content = text.substring(startIndex, endIndex);
-                sections[currentMatch.key] = content.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, ' ').trim();
-            }
-
-            ocrStatus.textContent = `✅ Documento processado. Validando com dados da planilha...`;
-            progressContainer.classList.add('hidden');
-            
-            manualSetor.value = formatAsTitle(sections.setor || '');
-            manualFuncao.value = formatAsTitle(sections.funcao || '');
-            manualAtividades.value = sections.atividades || '';
-
-            // Limpa listas antes de popular
             epiList.innerHTML = '';
-            medicaoList.innerHTML = '';
-
-            // Popula EPIs a partir do OCR
-            if(sections.epi) {
-                const epiRegex = /(.+?)(?:\s*C\.A\.?\s*[:\-]?\s*(\d+))?/gi;
-                let match;
-                while ((match = epiRegex.exec(sections.epi)) !== null) {
-                    if(match[1].trim()) addEpiRow(match[1].trim(), match[2] || '');
-                }
+            if (data.epis && Array.isArray(data.epis)) {
+                data.epis.forEach(epi => addEpiRow(epi.nome, epi.ca));
             }
-            
-            // Popula Medições a partir do OCR
-            if(sections.medicoes) {
-                const medicaoRegex = /(Ruído|Calor|Vibração)\s*[:\-]?\s*([\d,.]+)\s*(dB\(A\)|IBUTG|m\/s²)/gi;
-                 let match;
-                while ((match = medicaoRegex.exec(sections.medicoes)) !== null) {
-                    addMedicaoRow(match[1].trim(), match[2].trim(), match[3].trim());
-                }
+
+            medicaoList.innerHTML = '';
+            if (data.medicoes && Array.isArray(data.medicoes)) {
+                data.medicoes.forEach(med => addMedicaoRow(med.agente, med.valor, med.unidade));
             }
         }
 
@@ -756,7 +804,6 @@
                 }
             }
             
-            // Lógica para EPIs da planilha
             if (epiList.children.length === 0) {
                 const episFromSheet = findValueInObject(employee, ['EPI']);
                 if (episFromSheet) {
