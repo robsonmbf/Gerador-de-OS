@@ -13,11 +13,56 @@
     <!-- Tesseract.js para OCR -->
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        /* Definição de variáveis de cor para os temas claro e escuro */
+        :root {
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --card-bg-color: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-color: #e5e7eb;
+            --input-bg-color: #ffffff;
+            --input-placeholder-color: #9ca3af;
+            --tab-inactive-color: #6b7280;
+            --tab-active-color: #2563eb;
+            --tab-active-bg: #eff6ff;
+            --accordion-header-bg: #f9fafb;
+        }
+
+        .dark {
+            --bg-color: #111827;
+            --text-color: #d1d5db;
+            --card-bg-color: #1f2937;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            --border-color: #374151;
+            --input-bg-color: #374151;
+            --input-placeholder-color: #6b7280;
+            --tab-inactive-color: #9ca3af;
+            --tab-active-color: #60a5fa;
+            --tab-active-bg: #1e293b;
+            --accordion-header-bg: #374151;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .card { 
+            background-color: var(--card-bg-color); 
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s;
+        }
         .btn { transition: all 0.3s ease; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .risk-checkbox-container { max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem; background-color: #f7fafc; }
+        .risk-checkbox-container { 
+            max-height: 150px; 
+            overflow-y: auto; 
+            border: 1px solid var(--border-color); 
+            background-color: var(--bg-color);
+            border-radius: 0.5rem; 
+            padding: 0.75rem; 
+        }
         #os-preview { font-family: 'Times New Roman', Times, serif; color: #000; background: #fff; padding: 2rem; border: 1px solid #ccc; line-height: 1.5; }
         #os-preview h2, #os-preview h3 { font-weight: bold; text-align: center; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 12pt; }
         #os-preview p { text-align: justify; margin-bottom: 1rem; font-size: 11pt; }
@@ -27,18 +72,32 @@
         #os-preview .signature-line { border-top: 1px solid #000; margin-top: 3rem; text-align: center; padding-top: 0.5rem; }
         .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 24px; height: 24px; animation: spin 2s linear infinite; }
         .blinking-border { animation: blink 1s 3; }
-        .tab-button.active { border-color: #3b82f6; color: #3b82f6; background-color: #eff6ff; }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .tab-button { color: var(--tab-inactive-color); }
+        .tab-button.active { border-color: var(--tab-active-color); color: var(--tab-active-color); background-color: var(--tab-active-bg); }
+        .accordion-header { background-color: var(--accordion-header-bg); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border-color: var(--border-color); }
+        input, select, textarea { 
+            background-color: var(--input-bg-color); 
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+        input::placeholder, textarea::placeholder { color: var(--input-placeholder-color); }
         @keyframes blink { 50% { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-4 sm:p-8">
+<body class="p-4 sm:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-900">Gerador Automatizado de Ordem de Serviço</h1>
-            <p class="text-lg text-gray-600 mt-2">Um assistente inteligente para as suas necessidades de SST.</p>
+        <header class="text-center mb-8 relative">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white">Gerador Automatizado de Ordem de Serviço</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">Um assistente inteligente para as suas necessidades de SST.</p>
+            <button id="theme-toggle" class="absolute top-0 right-0 p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                <!-- Ícone de Sol (Modo Claro) -->
+                <svg id="theme-toggle-sun" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <!-- Ícone de Lua (Modo Escuro) -->
+                <svg id="theme-toggle-moon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
         </header>
 
         <!-- Área de Notificação -->
@@ -48,11 +107,11 @@
 
         <div class="card">
             <!-- Navegação por Abas -->
-            <div class="border-b border-gray-200">
+            <div class="border-b" style="border-color: var(--border-color);">
                 <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                     <button id="tab-btn-1" class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">1. Dados Iniciais</button>
-                    <button id="tab-btn-2" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300">2. Análise de Riscos</button>
-                    <button id="tab-btn-3" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300">3. Finalizar e Relatório</button>
+                    <button id="tab-btn-2" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg hover:border-gray-300">2. Análise de Riscos</button>
+                    <button id="tab-btn-3" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg hover:border-gray-300">3. Finalizar e Relatório</button>
                 </nav>
             </div>
 
@@ -60,46 +119,44 @@
             <div class="pt-8">
                 <!-- Aba 1: Dados Iniciais -->
                 <div id="tab-content-1" class="tab-content">
-                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Carregar Arquivos e Validar Dados</h3>
+                    <h3 class="text-xl font-semibold mb-4">Carregar Arquivos e Validar Dados</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div>
-                            <label for="xlsx-input" class="block mb-2 font-medium text-gray-700">1.1 - Planilha de Funcionários (.xlsx):</label>
-                            <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                            <p class="text-xs text-gray-500 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
-                            <label for="employee-select" class="block mt-4 mb-2 font-medium text-gray-700">Funcionário:</label>
-                            <select id="employee-select" disabled class="w-full p-2 border border-gray-300 rounded-lg bg-gray-200 cursor-not-allowed transition-all duration-300">
-                                <option>Aguardando planilha...</option>
-                            </select>
+                            <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
+                            <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'.</p>
+                            <label for="employee-select" class="block mt-4 mb-2 font-medium">Funcionário:</label>
+                            <select id="employee-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300"></select>
                         </div>
                         <div>
-                            <label for="sst-doc-input" class="block mb-2 font-medium text-gray-700">1.2 - Documento de SST (PGR, etc.):</label>
-                            <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <label for="sst-doc-input" class="block mb-2 font-medium">1.2 - Documento de SST (PGR, etc.):</label>
+                            <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
                             <div id="ocr-status" class="mt-2 text-sm flex items-center gap-2"></div>
                         </div>
                     </div>
-                    <div id="validation-section" class="hidden mt-6 border-t pt-6">
-                        <h4 class="text-lg font-semibold text-gray-700 mb-3">Valide os Dados Extraídos do Documento</h4>
-                        <p class="text-sm text-gray-600 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
+                    <div id="validation-section" class="hidden mt-6 border-t pt-6" style="border-color: var(--border-color);">
+                        <h4 class="text-lg font-semibold mb-3">Valide os Dados Extraídos do Documento</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
-                                <input type="text" id="manual-setor" class="w-full p-2 border border-gray-300 rounded-lg transition-all duration-300">
+                                <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300">
                             </div>
                             <div>
                                 <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
-                                <input type="text" id="manual-funcao" class="w-full p-2 border border-gray-300 rounded-lg transition-all duration-300">
+                                <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300">
                             </div>
                             <div class="md:col-span-2">
                                 <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
-                                <textarea id="manual-atividades" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma descrição de atividades encontrada. Adicione manualmente se necessário."></textarea>
+                                <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
                             </div>
                             <div class="md:col-span-2">
                                 <label for="manual-epi" class="block text-sm font-medium">EPIs (Equipamentos de Proteção Individual):</label>
-                                <textarea id="manual-epi" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma informação de EPI encontrada. Adicione manualmente se necessário."></textarea>
+                                <textarea id="manual-epi" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma informação de EPI encontrada..."></textarea>
                             </div>
                             <div class="md:col-span-2">
                                 <label for="manual-medicoes" class="block text-sm font-medium">Medições Ambientais:</label>
-                                <textarea id="manual-medicoes" rows="3" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nenhuma medição encontrada. Adicione manualmente se necessário."></textarea>
+                                <textarea id="manual-medicoes" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma medição encontrada..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -107,28 +164,26 @@
 
                 <!-- Aba 2: Análise de Riscos -->
                 <div id="tab-content-2" class="tab-content hidden">
-                     <div class="space-y-4" id="risk-accordion">
-                        <!-- Accordion Items will be generated by JS -->
-                    </div>
+                     <div class="space-y-4" id="risk-accordion"></div>
                 </div>
 
                 <!-- Aba 3: Finalizar e Relatório -->
                 <div id="tab-content-3" class="tab-content hidden">
                     <div class="text-center mb-8">
-                         <h3 class="text-xl font-semibold mb-4 text-gray-800">Gerar Ordem de Serviço</h3>
+                         <h3 class="text-xl font-semibold mb-4">Gerar Ordem de Serviço</h3>
                         <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
                             Gerar PDF da Ordem de Serviço
                         </button>
                     </div>
-                    <div class="border-t pt-8">
+                    <div class="border-t pt-8" style="border-color: var(--border-color);">
                         <h3 class="text-xl font-semibold mb-4">Relatório de OS Geradas (nesta sessão)</h3>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full bg-white border">
-                                <thead class="bg-gray-200">
+                            <table class="min-w-full border" style="border-color: var(--border-color);">
+                                <thead style="background-color: var(--accordion-header-bg);">
                                     <tr>
-                                        <th class="py-2 px-4 border-b text-left">Nome do Funcionário</th>
-                                        <th class="py-2 px-4 border-b text-left">Setor</th>
-                                        <th class="py-2 px-4 border-b text-left">Função</th>
+                                        <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Nome do Funcionário</th>
+                                        <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Setor</th>
+                                        <th class="py-2 px-4 border-b text-left" style="border-color: var(--border-color);">Função</th>
                                     </tr>
                                 </thead>
                                 <tbody id="report-table-body"></tbody>
@@ -221,6 +276,9 @@
         const manualMedicoes = document.getElementById('manual-medicoes');
         const generatePdfBtn = document.getElementById('generate-pdf-btn');
         const reportTableBody = document.getElementById('report-table-body');
+        const themeToggle = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('theme-toggle-sun');
+        const moonIcon = document.getElementById('theme-toggle-moon');
 
         // --- FUNÇÕES AUXILIARES ---
 
@@ -238,7 +296,7 @@
 
         function showNotification(type, title, message) {
             notificationArea.className = 'p-4 mb-4 text-sm rounded-lg';
-            let typeClasses = type === 'error' ? 'bg-red-100 text-red-700' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700');
+            let typeClasses = type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300');
             notificationArea.classList.add(...typeClasses.split(' '));
             notificationTitle.textContent = title;
             notificationMessage.textContent = message;
@@ -262,17 +320,18 @@
             for (const key in riskCategories) {
                 const title = riskCategories[key];
                 const item = document.createElement('div');
-                item.className = 'border border-gray-200 rounded-lg';
+                item.className = 'border rounded-lg';
+                item.style.borderColor = 'var(--border-color)';
                 item.innerHTML = `
-                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left text-gray-800 font-semibold bg-gray-50 hover:bg-gray-100">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
                         <span>${title}</span>
                         <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div class="accordion-content p-4 border-t border-gray-200">
+                    <div class="accordion-content p-4 border-t" style="border-color: var(--border-color);">
                         <div id="risk-${key}-checkboxes" class="risk-checkbox-container mb-2"></div>
-                        <textarea id="risk-${key}-outro" rows="1" class="w-full p-2 border border-gray-300 rounded-lg mt-2" placeholder="Outro..."></textarea>
+                        <textarea id="risk-${key}-outro" rows="1" class="w-full p-2 border rounded-lg mt-2" placeholder="Outro..."></textarea>
                         <label for="damage-${key}" class="block mb-1 mt-2 font-medium text-sm">Dano (${title}):</label>
-                        <textarea id="damage-${key}" rows="2" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
+                        <textarea id="damage-${key}" rows="2" class="w-full p-2 border rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
                     </div>
                 `;
                 accordionContainer.appendChild(item);
@@ -290,7 +349,7 @@
                         label.className = 'flex items-center space-x-2 cursor-pointer';
                         const input = document.createElement('input');
                         input.type = 'checkbox'; input.value = risk; input.dataset.category = category;
-                        input.className = 'rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200';
+                        input.className = 'rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600';
                         const span = document.createElement('span'); span.textContent = risk;
                         label.appendChild(input); label.appendChild(span); container.appendChild(label);
                         input.addEventListener('change', handleRiskSelectionChange);
@@ -343,7 +402,7 @@
                 }
             });
             employeeSelect.disabled = false;
-            employeeSelect.classList.remove('bg-gray-200', 'cursor-not-allowed');
+            employeeSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
         }
 
         sstDocInput.addEventListener('change', async (event) => {
@@ -520,7 +579,7 @@
             reportTableBody.innerHTML = '';
             generatedOSReport.forEach(item => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td class="py-2 px-4 border-b">${item.nome}</td><td class="py-2 px-4 border-b">${item.setor}</td><td class="py-2 px-4 border-b">${item.funcao}</td>`;
+                row.innerHTML = `<td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.nome}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.setor}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.funcao}</td>`;
                 reportTableBody.appendChild(row);
             });
         }
@@ -555,6 +614,24 @@
                         content.style.maxHeight = content.scrollHeight + "px";
                         icon.style.transform = 'rotate(180deg)';
                     }
+                }
+            });
+
+            // Lógica do Modo Noturno
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                sunIcon.classList.toggle('hidden');
+                moonIcon.classList.toggle('hidden');
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    localStorage.setItem('theme', 'light');
                 }
             });
         });
