@@ -232,7 +232,7 @@
                         <!-- Coluna de Conteúdo Principal -->
                         <div class="md:col-span-2 space-y-8">
                             <div>
-                                <h3 class="text-xl font-semibold mb-4">1. Carregar Arquivos</h3>
+                                <h3 class="text-xl font-semibold mb-4">1. Carregar Arquivos e Informações</h3>
                                 <div class="grid grid-cols-1 gap-8">
                                     <div>
                                         <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
@@ -244,6 +244,16 @@
                                     <div>
                                         <label for="logo-input" class="block mb-2 font-medium">1.2 - Logotipo da Empresa (Opcional):</label>
                                         <input type="file" id="logo-input" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
+                                    </div>
+                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="company-name" class="block mb-2 font-medium">1.3 - Nome da Empresa:</label>
+                                            <input type="text" id="company-name" class="w-full p-2 border rounded-lg">
+                                        </div>
+                                        <div>
+                                            <label for="company-unit" class="block mb-2 font-medium">1.4 - Unidade:</label>
+                                            <input type="text" id="company-unit" class="w-full p-2 border rounded-lg">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -441,6 +451,8 @@
         const funcaoSelect = document.getElementById('funcao-select');
         const sstDocInput = document.getElementById('sst-doc-input');
         const logoInput = document.getElementById('logo-input');
+        const companyNameInput = document.getElementById('company-name');
+        const companyUnitInput = document.getElementById('company-unit');
         const ocrStatus = document.getElementById('ocr-status');
         const validationSection = document.getElementById('validation-section');
         const manualSetor = document.getElementById('manual-setor');
@@ -944,7 +956,7 @@
 
         addEpiBtn.addEventListener('click', () => addEpiRow());
         addMedicaoBtn.addEventListener('click', () => addMedicaoRow());
-        [manualSetor, manualFuncao, manualAtividades].forEach(el => el.addEventListener('input', updateLivePreview));
+        [manualSetor, manualFuncao, manualAtividades, companyNameInput, companyUnitInput].forEach(el => el.addEventListener('input', updateLivePreview));
 
         function validateForm() {
             let isValid = true;
@@ -1044,6 +1056,8 @@
         }
 
         function generateOsHtmlForEmployee(employee) {
+            const empresa = companyNameInput.value.trim() || '[Nome da Empresa]';
+            const unidade = companyUnitInput.value.trim() || '[Unidade a ser definida]';
             const setor = manualSetor.value.trim();
             const funcao = manualFuncao.value.trim();
             const atividadesText = manualAtividades.value.trim() || defaultText;
@@ -1058,12 +1072,12 @@
             const logoHtml = logoDataUrl ? `<img src="${logoDataUrl}" alt="Logotipo" style="max-width: 150px; max-height: 80px; object-fit: contain;">` : '';
 
             return `
-                <h2>ORDEM DE SERVIÇO - SEGURANÇA E SAÚDE NO TRABALHO (NR-01)</h2>
+                <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor, conforme estabelece a NR-01 , sobre as condições de segurança e saúde às quais estão expostos, de forma a padronizar comportamentos para prevenir acidentes e/ou doenças ocupacionais.</p>
                 <table class="header-table">
                     <tr>
                         <td rowspan="3" style="width: 160px; text-align: center; vertical-align: middle; border-right: 1px solid #000;">${logoHtml}</td>
-                        <td colspan="2"><strong>Empresa:</strong> [Nome da Empresa]</td>
-                        <td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td>
+                        <td colspan="2"><strong>Empresa:</strong> ${empresa}</td>
+                        <td colspan="2"><strong>Unidade:</strong> ${unidade}</td>
                     </tr>
                     <tr>
                         <td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td>
@@ -1074,26 +1088,30 @@
                         <td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td>
                     </tr>
                 </table>
-                <h3>DESCRIÇÃO DAS ATIVIDADES (TAREFAS DA FUNÇÃO)</h3>
+                <h3>TAREFAS DA FUNÇÃO</h3>
                 <p>${atividadesText}</p>
-                <h3>AGENTES DE RISCOS OCUPACIONAIS</h3>
+                <h3>AGENTES DE RISCOS OCUPACIONAIS - NR01 item 1.4.1 b) I / item 1.4.4 a)</h3>
                 <table>
                     <tr><td><strong>Acidente:</strong> ${getCombinedRisks('acidente')}</td><td><strong>Físico:</strong> ${getCombinedRisks('fisico')}</td></tr>
                     <tr><td><strong>Ergonômico:</strong> ${getCombinedRisks('ergonomico')}</td><td><strong>Químico:</strong> ${getCombinedRisks('quimico')}</td></tr>
                     <tr><td colspan="2"><strong>Biológico:</strong> ${getCombinedRisks('biologico')}</td></tr>
                 </table>
-                <h3>POSSÍVEIS DANOS À SAÚDE</h3>
+                <h3>POSSÍVEIS DANOS À SAÚDE - NR01 item 1.4.1 b) I.</h3>
                 <table>
                     <tr><td><strong>Acidente:</strong> ${document.getElementById('damage-acidente').value.trim() || defaultText}</td><td><strong>Físico:</strong> ${document.getElementById('damage-fisico').value.trim() || defaultText}</td></tr>
                     <tr><td><strong>Ergonômico:</strong> ${document.getElementById('damage-ergonomico').value.trim() || defaultText}</td><td><strong>Químico:</strong> ${document.getElementById('damage-quimico').value.trim() || defaultText}</td></tr>
                     <tr><td colspan="2"><strong>Biológico:</strong> ${document.getElementById('damage-biologico').value.trim() || defaultText}</td></tr>
                 </table>
-                <h3>MEDIDAS ADOTADAS PELA EMPRESA</h3>
+                <h3>MEDIDAS ADOTADAS PELA EMPRESA PARA REDUZIR OS RISCOS OCUPACIONAIS NR01 item 1.4.1 b) II / item 1.4.4 c)</h3>
                 ${epiHtml}
-                <p>"Treinamento e Supervisão para execução das tarefas e uso dos EPI..."</p>
-                <h3>INFORME DOS RESULTADOS DAS AVALIAÇÕES AMBIENTAIS</h3>
+                <p>Treinamento e Supervisão para execução das tarefas e uso dos EPI, em especial em relação aos trabalhos em altura, com poeiras e solventes; Guarda-corpo de proteção periferias; Monitoramento do ambiente do trabalho afim de corrigir condições inseguras encontradas, imediatamente; Fornecimento de cópia de ASO informando os resultados dos exames médicos e dos exames complementares de diagnóstico aos quais os próprios trabalhadores forem submetidos; Sinalização de Segurança no ambiente de trabalho; Fornecimento, Treinamento e Exigência de uso de EPI.</p>
+                <h3>INFORME DOS RESULTADOS DAS AVALIAÇÕES AMBIENTAIS NOS LOCAIS DE TRABALHO - NR01 item 1.4.1 b) IV.</h3>
                 ${medicoesHtml}
-                <p style="margin-top: 1rem;">Conforme Art. 158 da CLT e NR-01 item 1.4.2.1...</p>
+                <h3>PROCEDIMENTOS A SEREM ADOTADOS EM SITUAÇÃO DE ACIDENTES E EMERGÊNCIAS - NR01 item 1.4.4 d) / item 1.4.1 e)</h3>
+                <p>Comunique imediatamente o acidente à chefia imediata ou na impossibilidade à pessoa que possa acessá-la; Preserve as condições do local de acidente até a comunicação com a autoridade competente; Siga as orientações correspondentes ao acidente e com as atribuições de sua função, indicados no “Plano de Respostas aos Possíveis Cenários de Emergência”, elaborado pela empresa”.</p>
+                <h3>ORIENTAÇÕES SOBRE CONSTATAÇÃO DE GRAVE E IMINENTE RISCO - NR01 item 1.4.4 e) / item 1.4.3 / item 1.4.3.1</h3>
+                <p>Sempre que constatar Grave e Iminente Risco à Vida e/ou Saúde, sua ou de outros, interrompa de imediato e com segurança as atividades; Informe imediatamente ao seu superior hierárquico; Registre a constatação e as medidas tomadas no “Registro de Condições de Grave e Iminente Risco”, conforme procedimento padronizados pela empresa; Aguarde as providências e liberação formal do cenário pela empresa.</p>
+                <p style="margin-top: 1rem;">Conforme Art. 158 da CLT e NR-01 item 1.4.2.1, o descumprimento imotivado das disposições legais e regulamentares sobre segurança e saúde no trabalho, inclusive das ordens de serviço expedidas pelo empregador, sujeita o empregado às penalidades legais, inclusive, demissão por justa causa.</p>
                 <table style="margin-top: 2rem; width: 100%; text-align: center; border: none;"><tr style="border: none;"><td style="border: none;">___________________________<br>SESMT</td><td style="border: none;">___________________________<br>Chefia Imediata</td></tr></table>
                 <p style="margin-top: 1rem;">Cópia recebida em: ______/______/______</p>
                 <div class="signature-line" style="margin-top: 3rem;">${formattedEmployeeName}</div>
