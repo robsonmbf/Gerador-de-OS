@@ -1254,6 +1254,36 @@
             }
         }
         
+        function updateRiskSummary() {
+            if (!documentAnalysisResult || !documentAnalysisResult.cargos) {
+                riskSummaryContainer.innerHTML = `<p class="text-gray-500">Nenhum dado de documento analisado para exibir.</p>`;
+                return;
+            }
+
+            let html = '';
+            const sectors = {};
+            documentAnalysisResult.cargos.forEach(cargo => {
+                if (!sectors[cargo.setor]) {
+                    sectors[cargo.setor] = [];
+                }
+                sectors[cargo.setor].push(cargo);
+            });
+
+            for (const setor in sectors) {
+                html += `<div class="p-4 border rounded-lg" style="border-color: var(--border-color);">`;
+                html += `<h4 class="text-lg font-bold">${formatAsTitle(setor)}</h4>`;
+                sectors[setor].forEach(cargo => {
+                    html += `<div class="ml-4 mt-2">`;
+                    html += `<p class="font-semibold">${formatAsTitle(cargo.funcao)}</p>`;
+                    // Adicione mais detalhes se desejar, por exemplo, uma lista de riscos.
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+            riskSummaryContainer.innerHTML = html;
+        }
+
+        
         function addToReport(data) { generatedOSReport.push(data); updateReportTable(); }
         function updateReportTable() {
             reportTableBody.innerHTML = '';
@@ -1284,56 +1314,67 @@
             addChatMessage(userInput, 'user');
             chatInput.value = '';
 
-            // Lógica simples de resposta da IA
-            setTimeout(() => {
-                if (userInput.toLowerCase().includes('riscos')) {
-                    const selectedFuncao = funcaoSelect.value;
-                    if (!selectedFuncao) {
-                        addChatMessage("Por favor, selecione um setor e uma função primeiro para que eu possa ajudar a identificar os riscos.", 'ai');
-                        return;
+            let response = "Desculpe, não entendi. Você pode me perguntar sobre 'funções encontradas', 'atividades do [cargo]', 'EPIs para [cargo]' ou pedir para 'identificar os riscos' para a função selecionada.";
+
+            if (!documentAnalysisResult && !userInput.toLowerCase().includes('olá')) {
+                addChatMessage("Por favor, primeiro analise um documento de SST para que eu possa ajudá-lo.", 'ai');
+                return;
+            }
+
+            if (userInput.toLowerCase().includes('funções encontradas')) {
+                const funcoes = documentAnalysisResult.cargos.map(c => formatAsTitle(c.funcao)).join(', ');
+                response = `Encontrei as seguintes funções no documento: ${funcoes}.`;
+            } else if (userInput.toLowerCase().startsWith('quais as atividades')) {
+                const cargoMatch = userInput.match(/atividades d[oae]\s+(.+)/i);
+                if (cargoMatch && cargoMatch[1]) {
+                    const cargoName = cargoMatch[1].trim();
+                    const cargoData = documentAnalysisResult.cargos.find(c => c.funcao.toLowerCase() === cargoName.toLowerCase());
+                    response = cargoData ? `Atividades para ${formatAsTitle(cargoName)}: ${cargoData.atividades}` : `Não encontrei a função "${cargoName}" no documento.`;
+                }
+            } else if (userInput.toLowerCase().startsWith('sugira epis para')) {
+                 const cargoMatch = userInput.match(/epis para\s+(.+)/i);
+                if (cargoMatch && cargoMatch[1]) {
+                    const cargoName = cargoMatch[1].trim();
+                    const cargoData = documentAnalysisResult.cargos.find(c => c.funcao.toLowerCase() === cargoName.toLowerCase());
+                    if (cargoData && cargoData.epis.length > 0) {
+                        const epiListStr = cargoData.epis.map(e => `${e.nome} (C.A.: ${e.ca || 'N/A'})`).join('; ');
+                        response = `EPIs para ${formatAsTitle(cargoName)}: ${epiListStr}.`;
+                    } else {
+                        response = `Não encontrei EPIs específicos para a função "${cargoName}" no documento.`;
                     }
-                    
-                    addChatMessage(`Ok, vou identificar e marcar os riscos mais comuns para a função de ${formatAsTitle(selectedFuncao)}. Por favor, aguarde um momento.`, 'ai');
-                    
+                }
+            } else if (userInput.toLowerCase().includes('riscos')) {
+                const selectedFuncao = funcaoSelect.value;
+                if (!selectedFuncao) {
+                    response = "Por favor, selecione um setor e uma função primeiro para que eu possa ajudar a identificar os riscos.";
+                } else {
+                    response = `Ok, vou identificar e marcar os riscos mais comuns para a função de ${formatAsTitle(selectedFuncao)}. Por favor, aguarde um momento.`;
                     // Simula a busca e marcação dos riscos
-                    // (Esta é uma lógica simplificada. Uma IA real faria uma análise mais complexa)
                     const functionRiskMap = {
-                        'Manobrista': {
-                            'acidente': ['Batida contra', 'Atropelamento', 'Queda de mesmo nível'],
-                            'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']
-                        },
-                        'Orientador de Tráfego': {
-                            'acidente': ['Atropelamento', 'Queda de mesmo nível'],
-                            'fisico': ['Ruído', 'Calor'],
-                            'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']
-                        }
+                        'Manobrista': {'acidente': ['Batida contra', 'Atropelamento', 'Queda de mesmo nível'],'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']},
+                        'Orientador de Tráfego': {'acidente': ['Atropelamento', 'Queda de mesmo nível'],'fisico': ['Ruído', 'Calor'],'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']}
                     };
-                    
                     const risksToSelect = functionRiskMap[selectedFuncao];
                     if (risksToSelect) {
                         for (const category in risksToSelect) {
                             risksToSelect[category].forEach(riskName => {
                                 const checkbox = document.querySelector(`#risk-${category}-checkboxes input[value="${riskName}"]`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                }
+                                if (checkbox) checkbox.checked = true;
                             });
                         }
                         handleRiskSelectionChange();
                         updateLivePreview();
-                        addChatMessage("Pronto! Marquei alguns riscos na aba 'Análise de Riscos'. Por favor, revise e ajuste se necessário.", 'ai');
+                        setTimeout(() => addChatMessage("Pronto! Marquei alguns riscos na aba 'Análise de Riscos'. Por favor, revise e ajuste se necessário.", 'ai'), 500);
                         showNotification('success', 'IA', 'Riscos selecionados pela IA na aba de Análise de Riscos.');
-
                     } else {
-                         addChatMessage(`Não tenho um mapeamento de riscos pré-definido para "${formatAsTitle(selectedFuncao)}". Por favor, preencha manualmente na aba 'Análise de Riscos'.`, 'ai');
+                         response = `Não tenho um mapeamento de riscos pré-definido para "${formatAsTitle(selectedFuncao)}". Por favor, preencha manualmente.`;
                     }
-
-                } else if (userInput.toLowerCase().includes('olá') || userInput.toLowerCase().includes('oi')) {
-                    addChatMessage("Olá! Como posso ajudar você com a geração da Ordem de Serviço? Você pode me pedir para 'identificar os riscos' da função selecionada.", 'ai');
-                } else {
-                    addChatMessage("Desculpe, não entendi. Por enquanto, posso ajudar a 'identificar os riscos' para a função que você selecionou.", 'ai');
                 }
-            }, 1000);
+            } else if (userInput.toLowerCase().includes('olá') || userInput.toLowerCase().includes('oi')) {
+                response = "Olá! Como posso ajudar? Você pode me perguntar sobre as funções, atividades e EPIs encontrados no documento, ou pedir para eu identificar os riscos da função selecionada.";
+            }
+            
+            setTimeout(() => addChatMessage(response, 'ai'), 500);
         }
 
         // --- INICIALIZAÇÃO ---
@@ -1406,7 +1447,7 @@
                     handleChatSend();
                 }
             });
-            addChatMessage("Olá! Sou sua assistente de IA. Após selecionar uma função, peça para eu 'identificar os riscos' para agilizar seu trabalho.", 'ai');
+            addChatMessage("Olá! Sou sua assistente de IA. Após analisar um documento, você pode me perguntar sobre as funções, atividades e EPIs que encontrei.", 'ai');
         });
     </script>
 </body>
