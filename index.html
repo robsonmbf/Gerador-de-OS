@@ -171,6 +171,46 @@
             align-items: center;
             justify-content: center;
         }
+        
+        /* Estilos do Chat IA */
+        #chat-toggle-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        #chat-modal {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+            transition: all 0.3s ease-in-out;
+        }
+        #chat-messages {
+            height: 300px;
+            overflow-y: auto;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .chat-bubble.user {
+            background-color: #3b82f6;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .chat-bubble.ai {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+
 
         @keyframes blink { 50% { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -372,6 +412,31 @@
         <!-- Área de Pré-visualização para PDF (oculta) -->
         <div id="os-container" class="hidden"><div id="os-preview"></div></div>
     </div>
+    
+    <!-- Botão Flutuante do Chat -->
+    <button id="chat-toggle-btn" class="btn bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+    </button>
+
+    <!-- Modal do Chat -->
+    <div id="chat-modal" class="hidden card shadow-2xl">
+        <div class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);">
+            <h3 class="text-lg font-semibold">Assistente IA</h3>
+            <button id="chat-close-btn" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+        </div>
+        <div id="chat-messages" class="p-4 flex flex-col">
+            <!-- Mensagens do chat aparecerão aqui -->
+        </div>
+        <div class="p-4 border-t" style="border-color: var(--border-color);">
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" class="w-full p-2 border rounded-lg" placeholder="Digite sua mensagem...">
+                <button id="chat-send-btn" class="btn bg-blue-600 text-white rounded-lg px-4">Enviar</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // --- BANCO DE DADOS DE RISCOS E DANOS ---
@@ -471,6 +536,15 @@
         const progressBar = document.getElementById('progress-bar');
         const liveOsPreview = document.getElementById('live-os-preview');
         const downloadTemplateBtn = document.getElementById('download-template-btn');
+        
+        // Chat Elements
+        const chatToggleBtn = document.getElementById('chat-toggle-btn');
+        const chatModal = document.getElementById('chat-modal');
+        const chatCloseBtn = document.getElementById('chat-close-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+
 
         // --- FUNÇÕES AUXILIARES ---
 
@@ -1147,6 +1221,78 @@
             });
         }
         
+        // --- LÓGICA DO CHAT ---
+        function toggleChat() {
+            chatModal.classList.toggle('hidden');
+        }
+
+        function addChatMessage(text, sender) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${sender}`;
+            bubble.textContent = text;
+            chatMessages.appendChild(bubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleChatSend() {
+            const userInput = chatInput.value.trim();
+            if (userInput === '') return;
+
+            addChatMessage(userInput, 'user');
+            chatInput.value = '';
+
+            // Lógica simples de resposta da IA
+            setTimeout(() => {
+                if (userInput.toLowerCase().includes('riscos')) {
+                    const selectedFuncao = funcaoSelect.value;
+                    if (!selectedFuncao) {
+                        addChatMessage("Por favor, selecione um setor e uma função primeiro para que eu possa ajudar a identificar os riscos.", 'ai');
+                        return;
+                    }
+                    
+                    addChatMessage(`Ok, vou identificar e marcar os riscos mais comuns para a função de ${formatAsTitle(selectedFuncao)}. Por favor, aguarde um momento.`, 'ai');
+                    
+                    // Simula a busca e marcação dos riscos
+                    // (Esta é uma lógica simplificada. Uma IA real faria uma análise mais complexa)
+                    const functionRiskMap = {
+                        'Manobrista': {
+                            'acidente': ['Batida contra', 'Atropelamento', 'Queda de mesmo nível'],
+                            'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']
+                        },
+                        'Orientador de Tráfego': {
+                            'acidente': ['Atropelamento', 'Queda de mesmo nível'],
+                            'fisico': ['Ruído', 'Calor'],
+                            'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']
+                        }
+                    };
+                    
+                    const risksToSelect = functionRiskMap[selectedFuncao];
+                    if (risksToSelect) {
+                        for (const category in risksToSelect) {
+                            risksToSelect[category].forEach(riskName => {
+                                const checkbox = document.querySelector(`#risk-${category}-checkboxes input[value="${riskName}"]`);
+                                if (checkbox) {
+                                    checkbox.checked = true;
+                                }
+                            });
+                        }
+                        handleRiskSelectionChange();
+                        updateLivePreview();
+                        addChatMessage("Pronto! Marquei alguns riscos na aba 'Análise de Riscos'. Por favor, revise e ajuste se necessário.", 'ai');
+                        showNotification('success', 'IA', 'Riscos selecionados pela IA na aba de Análise de Riscos.');
+
+                    } else {
+                         addChatMessage(`Não tenho um mapeamento de riscos pré-definido para "${formatAsTitle(selectedFuncao)}". Por favor, preencha manualmente na aba 'Análise de Riscos'.`, 'ai');
+                    }
+
+                } else if (userInput.toLowerCase().includes('olá') || userInput.toLowerCase().includes('oi')) {
+                    addChatMessage("Olá! Como posso ajudar você com a geração da Ordem de Serviço? Você pode me pedir para 'identificar os riscos' da função selecionada.", 'ai');
+                } else {
+                    addChatMessage("Desculpe, não entendi. Por enquanto, posso ajudar a 'identificar os riscos' para a função que você selecionou.", 'ai');
+                }
+            }, 1000);
+        }
+
         // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
             createRiskCards();
@@ -1207,6 +1353,17 @@
                     localStorage.setItem('theme', 'light');
                 }
             });
+
+            // Lógica do Chat
+            chatToggleBtn.addEventListener('click', toggleChat);
+            chatCloseBtn.addEventListener('click', toggleChat);
+            chatSendBtn.addEventListener('click', handleChatSend);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleChatSend();
+                }
+            });
+            addChatMessage("Olá! Sou sua assistente de IA. Após selecionar uma função, peça para eu 'identificar os riscos' para agilizar seu trabalho.", 'ai');
         });
     </script>
 </body>
