@@ -218,13 +218,13 @@
                                     <span class="status-icon">1</span>
                                     <span>Carregar planilha de funcionários</span>
                                 </li>
-                                <li id="checklist-doc" class="checklist-item flex items-center gap-3">
-                                    <span class="status-icon">2</span>
-                                    <span>Carregar documento de SST</span>
-                                </li>
                                 <li id="checklist-employee" class="checklist-item flex items-center gap-3">
-                                    <span class="status-icon">3</span>
+                                    <span class="status-icon">2</span>
                                     <span>Selecionar funcionário</span>
+                                </li>
+                                <li id="checklist-doc" class="checklist-item flex items-center gap-3">
+                                    <span class="status-icon">3</span>
+                                    <span>Carregar e analisar documento</span>
                                 </li>
                             </ul>
                         </div>
@@ -240,17 +240,7 @@
                                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'. Opcional: 'Setor', 'Função', 'Descrição das Atividades', 'EPIs'.</p>
                                     </div>
                                     <div>
-                                        <label for="sst-doc-input" class="block mb-2 font-medium">1.2 - Documento de SST (PGR, etc.):</label>
-                                        <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
-                                        <div id="ocr-status" class="mt-2 text-sm"></div>
-                                        <div id="progress-container" class="hidden mt-2">
-                                            <div class="progress-bar-container">
-                                                <div id="progress-bar" class="progress-bar">0%</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="logo-input" class="block mb-2 font-medium">1.3 - Logotipo da Empresa (Opcional):</label>
+                                        <label for="logo-input" class="block mb-2 font-medium">1.2 - Logotipo da Empresa (Opcional):</label>
                                         <input type="file" id="logo-input" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
                                     </div>
                                 </div>
@@ -264,9 +254,22 @@
                                 </select>
                             </div>
 
+                             <div class="border-t pt-6" style="border-color: var(--border-color);">
+                                <h3 class="text-xl font-semibold mb-4">3. Carregar Documento de SST</h3>
+                                <label for="sst-doc-input" class="block mb-2 font-medium">Documento (PGR, LTCAT, etc.):</label>
+                                <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer" disabled>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Selecione um funcionário para habilitar.</p>
+                                <div id="ocr-status" class="mt-2 text-sm"></div>
+                                <div id="progress-container" class="hidden mt-2">
+                                    <div class="progress-bar-container">
+                                        <div id="progress-bar" class="progress-bar">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div id="validation-section" class="hidden border-t pt-6" style="border-color: var(--border-color);">
-                                <h3 class="text-xl font-semibold mb-4">3. Validar Dados Extraídos</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">O sistema extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
+                                <h3 class="text-xl font-semibold mb-4">4. Validar Dados Extraídos</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">A IA extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
@@ -274,21 +277,19 @@
                                     </div>
                                     <div>
                                         <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
-                                        <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300">
+                                        <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300" readonly>
                                     </div>
                                     <div class="md:col-span-2">
                                         <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
                                         <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
                                     </div>
                                     
-                                    <!-- NOVO CAMPO DE EPIs DINÂMICO -->
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-medium mb-2">EPIs (Equipamentos de Proteção Individual):</label>
                                         <div id="epi-list"></div>
                                         <button id="add-epi-btn" class="btn text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-lg mt-2">Adicionar EPI</button>
                                     </div>
 
-                                    <!-- NOVO CAMPO DE MEDIÇÕES DINÂMICO -->
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-medium mb-2">Medições Ambientais:</label>
                                         <div id="medicao-list"></div>
@@ -478,7 +479,7 @@
                 icon.innerHTML = '&#10003;'; // Checkmark
             } else {
                 element.classList.remove('completed');
-                const number = item === 'xlsx' ? '1' : (item === 'doc' ? '2' : '3');
+                const number = item === 'xlsx' ? '1' : (item === 'employee' ? '2' : '3');
                 icon.innerHTML = number;
             }
             checkFormReadiness();
@@ -604,6 +605,13 @@
                 updateChecklist('doc', false);
                 return;
             }
+            
+            if (employeeSelect.value === "") {
+                showNotification('warning', 'Ação Necessária', 'Por favor, selecione um funcionário antes de carregar o documento de SST.');
+                sstDocInput.value = ''; // Limpa o input
+                return;
+            }
+
             ocrStatus.innerHTML = '<div class="loader"></div> <span>Convertendo documento para texto...</span>';
             progressContainer.classList.remove('hidden');
             progressBar.style.width = '0%';
@@ -631,7 +639,7 @@
                 console.error("Erro no processo de OCR ou IA:", error);
                 ocrStatus.textContent = '';
                 progressContainer.classList.add('hidden');
-                showNotification('error', 'Erro de Leitura!', 'Ocorreu uma falha ao ler o documento. Tentando carregar dados da planilha...');
+                showNotification('error', 'Erro de Leitura!', `Ocorreu uma falha ao processar o arquivo: ${error.message || 'Erro desconhecido'}. Verifique o console para mais detalhes e tente carregar os dados da planilha.`);
                 validationSection.classList.remove('hidden');
                 updateDetailsFromSources();
                 updateChecklist('doc', true);
@@ -655,24 +663,33 @@
 
 
         employeeSelect.addEventListener('change', () => {
-            updateDetailsFromSources();
-            updateChecklist('employee', employeeSelect.value !== "");
-            updateLivePreview();
+            const selected = employeeSelect.value !== "";
+            updateChecklist('employee', selected);
+            sstDocInput.disabled = !selected;
+            if(selected) {
+                updateDetailsFromSources();
+                updateLivePreview();
+            }
         });
         
         // --- LÓGICA DE IA ---
         async function analyzeTextWithAI(text) {
+            const selectedIndex = employeeSelect.value;
+            const employee = employeeData[selectedIndex];
+            const targetFunction = findValueInObject(employee, ['Função', 'Cargo']);
+            
             const prompt = `
-                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, extraído de um documento de SST (como LTCAT ou PGR), e retorne as informações em um formato JSON estruturado.
-                O texto pode conter tabelas e seções mal formatadas. Sua tarefa é interpretar o conteúdo e extrair os seguintes dados para a FUNÇÃO PRINCIPAL mencionada no documento:
+                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, que foi extraído de um documento de SST (como LTCAT ou PGR).
+                Sua tarefa é encontrar e extrair as informações específicas para a função de "${targetFunction}".
+                Retorne as informações em um formato JSON estruturado. O texto pode conter tabelas e seções mal formatadas.
                 
-                1.  **setor**: O nome do setor ou departamento.
-                2.  **funcao**: O nome da função ou cargo.
-                3.  **atividades**: A descrição detalhada das atividades da função.
-                4.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
-                5.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
+                Extraia os seguintes dados APENAS para a função "${targetFunction}":
+                1.  **setor**: O nome do setor ou departamento associado a esta função.
+                2.  **atividades**: A descrição detalhada das atividades da função.
+                3.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
+                4.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
 
-                Se uma informação não for encontrada, retorne uma string vazia para aquele campo ou uma lista vazia para 'epis' e 'medicoes'.
+                Se uma informação não for encontrada para esta função específica, retorne uma string vazia para aquele campo ou uma lista vazia para 'epis' e 'medicoes'.
 
                 Texto para análise:
                 ---
@@ -688,7 +705,6 @@
                         type: "OBJECT",
                         properties: {
                             setor: { type: "STRING" },
-                            funcao: { type: "STRING" },
                             atividades: { type: "STRING" },
                             epis: {
                                 type: "ARRAY",
@@ -726,7 +742,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API Error: ${response.statusText}`);
+                    const errorBody = await response.text();
+                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
                 }
 
                 const result = await response.json();
@@ -739,22 +756,21 @@
                     ocrStatus.textContent = '✅ Análise com IA concluída!';
                     progressContainer.classList.add('hidden');
                 } else {
-                    throw new Error("Resposta da IA em formato inesperado.");
+                     throw new Error("A resposta da IA não continha os dados esperados. Verifique o JSON de retorno: " + JSON.stringify(result));
                 }
 
             } catch (error) {
                 console.error("Erro na análise com IA:", error);
-                showNotification('warning', 'Falha na IA', 'A análise com IA falhou. Usando o método de extração padrão.');
-                // Fallback para o método antigo se a IA falhar
-                parseOCRText(text);
-                updateDetailsFromSources();
-                updateChecklist('doc', true);
+                showNotification('warning', 'Falha na IA', `A análise com IA falhou: ${error.message}. Usando dados da planilha como alternativa.`);
+                updateDetailsFromSources(); // Apenas usa a planilha como fallback
+                updateChecklist('doc', true); // Marca como completo para permitir prosseguir
+                ocrStatus.textContent = '⚠️ Falha na IA. Verifique os dados manualmente.';
+                progressContainer.classList.add('hidden');
             }
         }
         
         function populateFieldsFromAI(data) {
             manualSetor.value = formatAsTitle(data.setor || '');
-            manualFuncao.value = formatAsTitle(data.funcao || '');
             manualAtividades.value = data.atividades || '';
 
             epiList.innerHTML = '';
@@ -766,6 +782,9 @@
             if (data.medicoes && Array.isArray(data.medicoes)) {
                 data.medicoes.forEach(med => addMedicaoRow(med.agente, med.valor, med.unidade));
             }
+            
+            // Após popular com a IA, faz uma verificação final com a planilha para preencher campos vazios
+            updateDetailsFromSources();
         }
 
         function findValueInObject(obj, keys) {
@@ -793,8 +812,12 @@
                 'manual-funcao': ['Função', 'Cargo'],
                 'manual-atividades': ['Atividades', 'Descrição da Função', 'Descrição das Atividades', 'Tarefas']
             };
+            
+            // Preenche o campo de função sempre a partir da planilha, pois é a fonte da verdade.
+            manualFuncao.value = formatAsTitle(findValueInObject(employee, fieldMapping['manual-funcao']) || '');
 
             for (const inputId in fieldMapping) {
+                if (inputId === 'manual-funcao') continue; // Pula a função que já foi preenchida
                 const inputElement = document.getElementById(inputId);
                 if (inputElement.value.trim() === '') {
                     const valueFromSheet = findValueInObject(employee, fieldMapping[inputId]);
@@ -806,12 +829,14 @@
             
             if (epiList.children.length === 0) {
                 const episFromSheet = findValueInObject(employee, ['EPI']);
-                if (episFromSheet) {
-                    const epiRegex = /(.+?)(?:-\s*C\.A\.\s*-\s*(\d+))?/g;
-                    let match;
-                    while ((match = epiRegex.exec(episFromSheet)) !== null) {
-                        addEpiRow(match[1].trim().replace(/;$/, ''), match[2] || '');
-                    }
+                if (episFromSheet && typeof episFromSheet === 'string') {
+                     const epiItems = episFromSheet.split(';').filter(item => item.trim() !== '');
+                     epiItems.forEach(item => {
+                        const caMatch = item.match(/C\.A\.\s*-\s*(\d+)/i);
+                        const ca = caMatch ? caMatch[1] : '';
+                        const name = item.replace(/-\s*C\.A\.\s*-\s*\d+/i, '').trim();
+                        addEpiRow(name, ca);
+                     });
                 }
             }
 
