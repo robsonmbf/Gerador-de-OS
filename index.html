@@ -218,9 +218,9 @@
                                     <span class="status-icon">1</span>
                                     <span>Carregar planilha de funcionários</span>
                                 </li>
-                                <li id="checklist-employee" class="checklist-item flex items-center gap-3">
+                                <li id="checklist-funcao" class="checklist-item flex items-center gap-3">
                                     <span class="status-icon">2</span>
-                                    <span>Selecionar funcionário</span>
+                                    <span>Selecionar Setor e Função</span>
                                 </li>
                                 <li id="checklist-doc" class="checklist-item flex items-center gap-3">
                                     <span class="status-icon">3</span>
@@ -237,7 +237,9 @@
                                     <div>
                                         <label for="xlsx-input" class="block mb-2 font-medium">1.1 - Planilha de Funcionários (.xlsx):</label>
                                         <input type="file" id="xlsx-input" accept=".xlsx" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Colunas: 'Nome do Funcionário', 'Data de Admissão'. Opcional: 'Setor', 'Função', 'Descrição das Atividades', 'EPIs'.</p>
+                                        <div class="mt-2">
+                                            <a href="#" id="download-template-btn" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">Baixar modelo de planilha (.xlsx)</a>
+                                        </div>
                                     </div>
                                     <div>
                                         <label for="logo-input" class="block mb-2 font-medium">1.2 - Logotipo da Empresa (Opcional):</label>
@@ -247,18 +249,28 @@
                             </div>
 
                             <div class="border-t pt-6" style="border-color: var(--border-color);">
-                                <h3 class="text-xl font-semibold mb-4">2. Selecionar Funcionário</h3>
-                                <label for="employee-select" class="block mb-2 font-medium">Funcionário:</label>
-                                <select id="employee-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300">
-                                    <option>Aguardando planilha...</option>
-                                </select>
+                                <h3 class="text-xl font-semibold mb-4">2. Selecionar Setor e Função</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="setor-select" class="block mb-2 font-medium">Setor:</label>
+                                        <select id="setor-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300">
+                                            <option>Aguardando planilha...</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="funcao-select" class="block mb-2 font-medium">Função:</label>
+                                        <select id="funcao-select" disabled class="w-full p-2 border rounded-lg bg-gray-200 dark:bg-gray-700 cursor-not-allowed transition-all duration-300">
+                                            <option>Selecione um setor...</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                              <div class="border-t pt-6" style="border-color: var(--border-color);">
                                 <h3 class="text-xl font-semibold mb-4">3. Carregar Documento de SST</h3>
                                 <label for="sst-doc-input" class="block mb-2 font-medium">Documento (PGR, LTCAT, etc.):</label>
                                 <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer" disabled>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Selecione um funcionário para habilitar.</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Selecione um setor e função para habilitar.</p>
                                 <div id="ocr-status" class="mt-2 text-sm"></div>
                                 <div id="progress-container" class="hidden mt-2">
                                     <div class="progress-bar-container">
@@ -273,7 +285,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
-                                        <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300">
+                                        <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300" readonly>
                                     </div>
                                     <div>
                                         <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
@@ -313,9 +325,9 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
                             <div class="text-center mb-8">
-                               <h3 class="text-xl font-semibold mb-4">Gerar Ordem de Serviço</h3>
+                               <h3 class="text-xl font-semibold mb-4">Gerar Ordens de Serviço</h3>
                                 <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                                    Gerar PDF da Ordem de Serviço
+                                    Gerar OS para a Função
                                 </button>
                             </div>
                             <div class="border-t pt-8" style="border-color: var(--border-color);">
@@ -338,7 +350,7 @@
                              <h3 class="text-xl font-semibold mb-4 text-center">Pré-visualização da OS</h3>
                              <div id="live-os-preview-container" class="max-h-[80vh] overflow-y-auto">
                                 <div id="live-os-preview">
-                                    <p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que um funcionário for selecionado.</p>
+                                    <p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que uma função for selecionada.</p>
                                 </div>
                              </div>
                         </div>
@@ -410,13 +422,14 @@
 
         // --- LÓGICA DA APLICAÇÃO ---
         let employeeData = [];
+        let structuredRoles = {};
         let generatedOSReport = [];
         let logoDataUrl = null;
         const defaultText = "Não identificado no momento da avaliação.";
         const checklistStatus = {
             xlsx: false,
-            doc: false,
-            employee: false
+            funcao: false,
+            doc: false
         };
 
         // DOM Elements
@@ -424,7 +437,8 @@
         const notificationTitle = document.getElementById('notification-title');
         const notificationMessage = document.getElementById('notification-message');
         const xlsxInput = document.getElementById('xlsx-input');
-        const employeeSelect = document.getElementById('employee-select');
+        const setorSelect = document.getElementById('setor-select');
+        const funcaoSelect = document.getElementById('funcao-select');
         const sstDocInput = document.getElementById('sst-doc-input');
         const logoInput = document.getElementById('logo-input');
         const ocrStatus = document.getElementById('ocr-status');
@@ -444,6 +458,7 @@
         const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progress-bar');
         const liveOsPreview = document.getElementById('live-os-preview');
+        const downloadTemplateBtn = document.getElementById('download-template-btn');
 
         // --- FUNÇÕES AUXILIARES ---
 
@@ -479,7 +494,7 @@
                 icon.innerHTML = '&#10003;'; // Checkmark
             } else {
                 element.classList.remove('completed');
-                const number = item === 'xlsx' ? '1' : (item === 'employee' ? '2' : '3');
+                const number = item === 'xlsx' ? '1' : (item === 'funcao' ? '2' : '3');
                 icon.innerHTML = number;
             }
             checkFormReadiness();
@@ -574,7 +589,7 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     employeeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                    populateEmployeeSelect();
+                    processAndPopulateSelectors();
                     updateChecklist('xlsx', true);
                 } catch (error) {
                     showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique o formato (.xlsx) e as colunas.');
@@ -584,20 +599,85 @@
             reader.readAsArrayBuffer(file);
         });
 
-        function populateEmployeeSelect() {
-            employeeSelect.innerHTML = '<option>Aguardando planilha...</option>';
-            employeeSelect.innerHTML = '<option value="">-- Selecione um funcionário --</option>';
-            employeeData.forEach((employee, index) => {
-                const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
-                if (employeeName) {
-                    const option = document.createElement('option');
-                    option.value = index; option.textContent = formatAsTitle(employeeName);
-                    employeeSelect.appendChild(option);
+        function processAndPopulateSelectors() {
+            structuredRoles = {};
+            employeeData.forEach(employee => {
+                const setor = findValueInObject(employee, ['Setor']);
+                const funcao = findValueInObject(employee, ['Função', 'Cargo']);
+                if (setor && funcao) {
+                    if (!structuredRoles[setor]) {
+                        structuredRoles[setor] = new Set();
+                    }
+                    structuredRoles[setor].add(funcao);
                 }
             });
-            employeeSelect.disabled = false;
-            employeeSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
+
+            setorSelect.innerHTML = '<option value="">-- Selecione um setor --</option>';
+            Object.keys(structuredRoles).sort().forEach(setor => {
+                const option = document.createElement('option');
+                option.value = setor;
+                option.textContent = formatAsTitle(setor);
+                setorSelect.appendChild(option);
+            });
+            setorSelect.disabled = false;
+            setorSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
+            funcaoSelect.innerHTML = '<option value="">Selecione um setor...</option>';
+            funcaoSelect.disabled = true;
         }
+
+        setorSelect.addEventListener('change', () => {
+            const selectedSetor = setorSelect.value;
+            funcaoSelect.innerHTML = '<option value="">-- Selecione uma função --</option>';
+            if (selectedSetor && structuredRoles[selectedSetor]) {
+                Array.from(structuredRoles[selectedSetor]).sort().forEach(funcao => {
+                    const option = document.createElement('option');
+                    option.value = funcao;
+                    option.textContent = formatAsTitle(funcao);
+                    funcaoSelect.appendChild(option);
+                });
+                funcaoSelect.disabled = false;
+                funcaoSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
+            } else {
+                funcaoSelect.disabled = true;
+            }
+            updateChecklist('funcao', false);
+            sstDocInput.disabled = true;
+        });
+
+        funcaoSelect.addEventListener('change', () => {
+            const selectedFuncao = funcaoSelect.value;
+            const selectedSetor = setorSelect.value;
+            const selected = selectedFuncao !== "";
+            updateChecklist('funcao', selected);
+            sstDocInput.disabled = !selected;
+
+            hideNotification(); // Limpa notificações antigas
+
+            if (selected) {
+                // Lógica para verificar duplicidade de função em outros setores
+                const otherSectorsWithSameFunction = [];
+                for (const setor in structuredRoles) {
+                    if (setor !== selectedSetor) {
+                        const funcoesInSetor = structuredRoles[setor];
+                        if (funcoesInSetor.has(selectedFuncao)) {
+                            otherSectorsWithSameFunction.push(formatAsTitle(setor));
+                        }
+                    }
+                }
+
+                if (otherSectorsWithSameFunction.length > 0) {
+                    const sectorList = otherSectorsWithSameFunction.join(', ');
+                    showNotification(
+                        'warning', 
+                        'Atenção: Função Duplicada!', 
+                        `A função "${formatAsTitle(selectedFuncao)}" também existe no(s) setor(es): ${sectorList}. Verifique se as informações de risco estão corretas para o setor selecionado.`
+                    );
+                }
+
+                updateDetailsFromSources();
+                updateLivePreview();
+            }
+        });
 
         sstDocInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
@@ -606,9 +686,9 @@
                 return;
             }
             
-            if (employeeSelect.value === "") {
-                showNotification('warning', 'Ação Necessária', 'Por favor, selecione um funcionário antes de carregar o documento de SST.');
-                sstDocInput.value = ''; // Limpa o input
+            if (funcaoSelect.value === "") {
+                showNotification('warning', 'Ação Necessária', 'Por favor, selecione um setor e função antes de carregar o documento.');
+                sstDocInput.value = '';
                 return;
             }
 
@@ -660,23 +740,10 @@
             };
             reader.readAsDataURL(file);
         });
-
-
-        employeeSelect.addEventListener('change', () => {
-            const selected = employeeSelect.value !== "";
-            updateChecklist('employee', selected);
-            sstDocInput.disabled = !selected;
-            if(selected) {
-                updateDetailsFromSources();
-                updateLivePreview();
-            }
-        });
         
         // --- LÓGICA DE IA ---
         async function analyzeTextWithAI(text) {
-            const selectedIndex = employeeSelect.value;
-            const employee = employeeData[selectedIndex];
-            const targetFunction = findValueInObject(employee, ['Função', 'Cargo']);
+            const targetFunction = funcaoSelect.value;
             
             const prompt = `
                 Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, que foi extraído de um documento de SST (como LTCAT ou PGR).
@@ -800,35 +867,27 @@
         }
 
         function updateDetailsFromSources() {
-            const selectedIndex = employeeSelect.value;
-            if (selectedIndex === "" || !employeeData[selectedIndex]) {
-                return;
-            }
-            const employee = employeeData[selectedIndex];
+            const selectedSetor = setorSelect.value;
+            const selectedFuncao = funcaoSelect.value;
+            if (!selectedSetor || !selectedFuncao) return;
+
+            const representativeEmployee = employeeData.find(emp => {
+                return findValueInObject(emp, ['Setor']) === selectedSetor && findValueInObject(emp, ['Função', 'Cargo']) === selectedFuncao;
+            });
+
+            if (!representativeEmployee) return;
+
             validationSection.classList.remove('hidden');
 
-            const fieldMapping = {
-                'manual-setor': ['Setor', 'Área', 'Departamento'],
-                'manual-funcao': ['Função', 'Cargo'],
-                'manual-atividades': ['Atividades', 'Descrição da Função', 'Descrição das Atividades', 'Tarefas']
-            };
-            
-            // Preenche o campo de função sempre a partir da planilha, pois é a fonte da verdade.
-            manualFuncao.value = formatAsTitle(findValueInObject(employee, fieldMapping['manual-funcao']) || '');
+            manualSetor.value = formatAsTitle(selectedSetor);
+            manualFuncao.value = formatAsTitle(selectedFuncao);
 
-            for (const inputId in fieldMapping) {
-                if (inputId === 'manual-funcao') continue; // Pula a função que já foi preenchida
-                const inputElement = document.getElementById(inputId);
-                if (inputElement.value.trim() === '') {
-                    const valueFromSheet = findValueInObject(employee, fieldMapping[inputId]);
-                    if (valueFromSheet) {
-                        inputElement.value = valueFromSheet;
-                    }
-                }
+            if (manualAtividades.value.trim() === '') {
+                manualAtividades.value = findValueInObject(representativeEmployee, ['Atividades', 'Descrição da Função', 'Descrição das Atividades', 'Tarefas']) || '';
             }
             
             if (epiList.children.length === 0) {
-                const episFromSheet = findValueInObject(employee, ['EPI']);
+                const episFromSheet = findValueInObject(representativeEmployee, ['EPI']);
                 if (episFromSheet && typeof episFromSheet === 'string') {
                      const epiItems = episFromSheet.split(';').filter(item => item.trim() !== '');
                      epiItems.forEach(item => {
@@ -890,9 +949,8 @@
         function validateForm() {
             let isValid = true;
             const fieldsToValidate = [
-                { el: employeeSelect, msg: 'Selecione um funcionário.' },
-                { el: manualSetor, msg: 'Preencha o campo Setor.' },
-                { el: manualFuncao, msg: 'Preencha o campo Função.' }
+                { el: setorSelect, msg: 'Selecione um setor.' },
+                { el: funcaoSelect, msg: 'Selecione uma função.' }
             ];
             fieldsToValidate.forEach(field => field.el.classList.remove('blinking-border'));
             hideNotification();
@@ -910,23 +968,41 @@
             return isValid;
         }
 
-        generatePdfBtn.addEventListener('click', () => {
+        generatePdfBtn.addEventListener('click', async () => {
             if (!validateForm()) return;
-            const previewContent = document.getElementById('live-os-preview').innerHTML;
-            document.getElementById('os-preview').innerHTML = previewContent;
+
+            const selectedSetor = setorSelect.value;
+            const selectedFuncao = funcaoSelect.value;
+
+            const matchingEmployees = employeeData.filter(emp => {
+                const empSetor = findValueInObject(emp, ['Setor']);
+                const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
+                return empSetor === selectedSetor && empFuncao === selectedFuncao;
+            });
+
+            if (matchingEmployees.length === 0) {
+                showNotification('warning', 'Nenhum Funcionário', 'Nenhum funcionário encontrado para o setor e função selecionados.');
+                return;
+            }
             
-            const employee = employeeData[employeeSelect.value];
-            const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
-            const fileName = `OS - ${employeeName}.pdf`;
-            const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-            
-            html2pdf().from(document.getElementById('os-preview')).set(options).save().then(() => {
+            showNotification('success', 'Iniciando Geração', `Gerando OS para ${matchingEmployees.length} funcionário(s). Vários downloads serão iniciados.`);
+
+            for (const employee of matchingEmployees) {
+                const osHtml = generateOsHtmlForEmployee(employee);
+                document.getElementById('os-preview').innerHTML = osHtml;
+                
+                const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
+                const fileName = `OS - ${employeeName}.pdf`;
+                const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+                
+                await html2pdf().from(document.getElementById('os-preview')).set(options).save();
+                
                 addToReport({ 
                     nome: formatAsTitle(employeeName), 
-                    setor: formatAsTitle(manualSetor.value), 
-                    funcao: formatAsTitle(manualFuncao.value) 
+                    setor: formatAsTitle(selectedSetor), 
+                    funcao: formatAsTitle(selectedFuncao) 
                 });
-            });
+            }
         });
         
         function getCombinedRisks(category) {
@@ -967,16 +1043,9 @@
             return tableHtml;
         }
 
-        function updateLivePreview() {
-            if (employeeSelect.value === "") {
-                liveOsPreview.innerHTML = `<p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que um funcionário for selecionado.</p>`;
-                return;
-            }
-            
-            const employee = employeeData[employeeSelect.value];
+        function generateOsHtmlForEmployee(employee) {
             const setor = manualSetor.value.trim();
             const funcao = manualFuncao.value.trim();
-
             const atividadesText = manualAtividades.value.trim() || defaultText;
             const epiHtml = getStructuredEpiHtml();
             const medicoesHtml = getStructuredMedicaoHtml();
@@ -986,16 +1055,13 @@
             const formattedEmployeeName = formatAsTitle(employeeName);
             const formattedSetor = formatAsTitle(setor);
             const formattedFuncao = formatAsTitle(funcao);
-            
             const logoHtml = logoDataUrl ? `<img src="${logoDataUrl}" alt="Logotipo" style="max-width: 150px; max-height: 80px; object-fit: contain;">` : '';
 
-            liveOsPreview.innerHTML = `
+            return `
                 <h2>ORDEM DE SERVIÇO - SEGURANÇA E SAÚDE NO TRABALHO (NR-01)</h2>
                 <table class="header-table">
                     <tr>
-                        <td rowspan="3" style="width: 160px; text-align: center; vertical-align: middle; border-right: 1px solid #000;">
-                            ${logoHtml}
-                        </td>
+                        <td rowspan="3" style="width: 160px; text-align: center; vertical-align: middle; border-right: 1px solid #000;">${logoHtml}</td>
                         <td colspan="2"><strong>Empresa:</strong> [Nome da Empresa]</td>
                         <td colspan="2"><strong>Unidade:</strong> [Unidade a ser definida]</td>
                     </tr>
@@ -1033,6 +1099,25 @@
                 <div class="signature-line" style="margin-top: 3rem;">${formattedEmployeeName}</div>
             `;
         }
+
+        function updateLivePreview() {
+            const selectedSetor = setorSelect.value;
+            const selectedFuncao = funcaoSelect.value;
+            if (!selectedSetor || !selectedFuncao) {
+                liveOsPreview.innerHTML = `<p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que uma função for selecionada.</p>`;
+                return;
+            }
+            
+            const representativeEmployee = employeeData.find(emp => {
+                return findValueInObject(emp, ['Setor']) === selectedSetor && findValueInObject(emp, ['Função', 'Cargo']) === selectedFuncao;
+            });
+
+            if(representativeEmployee) {
+                liveOsPreview.innerHTML = generateOsHtmlForEmployee(representativeEmployee);
+            } else {
+                 liveOsPreview.innerHTML = `<p class="text-center text-gray-500">Selecione uma função para ver a pré-visualização.</p>`;
+            }
+        }
         
         function addToReport(data) { generatedOSReport.push(data); updateReportTable(); }
         function updateReportTable() {
@@ -1048,6 +1133,32 @@
         document.addEventListener('DOMContentLoaded', () => {
             createRiskCards();
             
+            downloadTemplateBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const templateData = [
+                    {
+                        "Nome do Funcionário": "João da Silva",
+                        "Data de Admissão": "01/01/2023",
+                        "Setor": "Operacional",
+                        "Função": "Manobrista",
+                        "Descrição das Atividades": "Manobrar veículos dos clientes até as vagas demarcadas e executa atividades de orientação.",
+                        "EPIs (Separados por ';')": "Sapato Social Ocupacional - C.A. - 33698"
+                    },
+                    {
+                        "Nome do Funcionário": "Maria Oliveira",
+                        "Data de Admissão": "15/03/2022",
+                        "Setor": "Operacional",
+                        "Função": "Orientador de Tráfego",
+                        "Descrição das Atividades": "Executa atividades de orientação fornecendo informações aos condutores para garantir fluidez ao tráfego.",
+                        "EPIs (Separados por ';')": "Botina de Segurança - C.A. - 45611; Capa de Chuva PVC - C.A. - 28449"
+                    }
+                ];
+                const worksheet = XLSX.utils.json_to_sheet(templateData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Funcionários");
+                XLSX.writeFile(workbook, "Modelo_Funcionarios_OS.xlsx");
+            });
+
             // Lógica das Abas
             const tabs = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
