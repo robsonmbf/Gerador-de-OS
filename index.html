@@ -210,6 +210,27 @@
             align-self: flex-start;
             border-bottom-left-radius: 0.25rem;
         }
+        
+        /* Estilos do Modal do Agente IA */
+        #agente-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #agente-modal {
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1050;
+        }
 
 
         @keyframes blink { 50% { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; } }
@@ -304,6 +325,25 @@
                                 <label for="sst-doc-input" class="block mb-2 font-medium">Documento (PGR, LTCAT, etc.):</label>
                                 <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer" disabled>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Carregue a planilha para habilitar.</p>
+                                
+                                <!-- Opções de Análise -->
+                                <div id="analysis-options" class="hidden mt-4 p-4 border rounded-lg" style="border-color: var(--border-color);">
+                                    <p class="font-medium mb-2">Escolha o método de análise:</p>
+                                    <div class="flex flex-col sm:flex-row gap-4">
+                                        <div class="flex-1 space-y-2">
+                                            <div class="flex items-center">
+                                                <input id="direct-ai-radio" type="radio" value="direct-ai" name="analysis-method" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                                <label for="direct-ai-radio" class="ml-2 text-sm font-medium">Análise Direta via IA <span class="text-xs text-gray-500">(PDFs)</span></label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input id="ocr-radio" type="radio" value="ocr" name="analysis-method" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                                <label for="ocr-radio" class="ml-2 text-sm font-medium">Análise via OCR <span class="text-xs text-gray-500">(Imagens/PDFs)</span></label>
+                                            </div>
+                                        </div>
+                                        <button id="start-analysis-btn" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg self-center sm:self-end">Analisar</button>
+                                    </div>
+                                </div>
+
                                 <div id="ai-status" class="mt-2 text-sm flex items-center gap-2"></div>
                                 <div id="progress-container" class="hidden mt-2">
                                     <div class="progress-bar-container">
@@ -380,11 +420,16 @@
                 <div id="tab-content-3" class="tab-content hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
-                            <div class="text-center mb-8">
-                               <h3 class="text-xl font-semibold mb-4">Gerar Ordens de Serviço</h3>
-                                <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                                    Gerar OS para a Função
-                                </button>
+                            <div class="text-center mb-8 space-y-4">
+                               <h3 class="text-xl font-semibold mb-4">Finalizar</h3>
+                               <div class="flex justify-center gap-4">
+                                    <button id="analise-agente-btn" disabled class="btn bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                        Análise do Agente IA
+                                    </button>
+                                    <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                        Gerar OS para a Função
+                                    </button>
+                               </div>
                             </div>
                             <div class="border-t pt-8" style="border-color: var(--border-color);">
                                 <h3 class="text-xl font-semibold mb-4">Relatório de OS Geradas (nesta sessão)</h3>
@@ -439,6 +484,19 @@
             <div class="flex gap-2">
                 <input type="text" id="chat-input" class="w-full p-2 border rounded-lg" placeholder="Digite sua mensagem...">
                 <button id="chat-send-btn" class="btn bg-blue-600 text-white rounded-lg px-4">Enviar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal do Agente IA -->
+    <div id="agente-modal-overlay" class="hidden">
+        <div id="agente-modal" class="card shadow-2xl p-6 rounded-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold header-text">Análise do Agente IA</h3>
+                <button id="agente-close-btn" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl">&times;</button>
+            </div>
+            <div id="agente-feedback" class="space-y-4">
+                <!-- O feedback da IA será inserido aqui -->
             </div>
         </div>
     </div>
@@ -501,10 +559,10 @@
             }
         };
 
-        // --- LÓGICA DA APLICAÇÃO ---
+        // --- VARIÁVEIS GLOBAIS DE ESTADO ---
         let employeeData = [];
         let structuredRoles = {};
-        let documentAnalysisResult = null; // Armazena o resultado completo da IA
+        let documentAnalysisResult = null;
         let generatedOSReport = [];
         let logoDataUrl = null;
         const defaultText = "Não identificado no momento da avaliação.";
@@ -514,912 +572,723 @@
             funcao: false
         };
 
-        // DOM Elements
-        const notificationArea = document.getElementById('notification-area');
-        const notificationTitle = document.getElementById('notification-title');
-        const notificationMessage = document.getElementById('notification-message');
-        const xlsxInput = document.getElementById('xlsx-input');
-        const setorSelect = document.getElementById('setor-select');
-        const funcaoSelect = document.getElementById('funcao-select');
-        const sstDocInput = document.getElementById('sst-doc-input');
-        const logoInput = document.getElementById('logo-input');
-        const companyNameInput = document.getElementById('company-name');
-        const companyUnitInput = document.getElementById('company-unit');
-        const aiStatus = document.getElementById('ai-status');
-        const validationSection = document.getElementById('validation-section');
-        const manualAtividades = document.getElementById('manual-atividades');
-        const epiList = document.getElementById('epi-list');
-        const addEpiBtn = document.getElementById('add-epi-btn');
-        const medicaoList = document.getElementById('medicao-list');
-        const addMedicaoBtn = document.getElementById('add-medicao-btn');
-        const generatePdfBtn = document.getElementById('generate-pdf-btn');
-        const reportTableBody = document.getElementById('report-table-body');
-        const themeToggle = document.getElementById('theme-toggle');
-        const sunIcon = document.getElementById('theme-toggle-sun');
-        const moonIcon = document.getElementById('theme-toggle-moon');
-        const liveOsPreview = document.getElementById('live-os-preview');
-        const downloadTemplateBtn = document.getElementById('download-template-btn');
-        const riskSummaryContainer = document.getElementById('risk-summary-container');
-        const employeeCountSpan = document.getElementById('employee-count');
-        const progressContainer = document.getElementById('progress-container');
-        const progressBar = document.getElementById('progress-bar');
-        
-        // Chat Elements
-        const chatToggleBtn = document.getElementById('chat-toggle-btn');
-        const chatModal = document.getElementById('chat-modal');
-        const chatCloseBtn = document.getElementById('chat-close-btn');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const chatSendBtn = document.getElementById('chat-send-btn');
+        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SELEÇÃO DE ELEMENTOS DO DOM ---
+            const notificationArea = document.getElementById('notification-area');
+            const notificationTitle = document.getElementById('notification-title');
+            const notificationMessage = document.getElementById('notification-message');
+            const xlsxInput = document.getElementById('xlsx-input');
+            const setorSelect = document.getElementById('setor-select');
+            const funcaoSelect = document.getElementById('funcao-select');
+            const sstDocInput = document.getElementById('sst-doc-input');
+            const logoInput = document.getElementById('logo-input');
+            const companyNameInput = document.getElementById('company-name');
+            const companyUnitInput = document.getElementById('company-unit');
+            const aiStatus = document.getElementById('ai-status');
+            const validationSection = document.getElementById('validation-section');
+            const manualAtividades = document.getElementById('manual-atividades');
+            const epiList = document.getElementById('epi-list');
+            const addEpiBtn = document.getElementById('add-epi-btn');
+            const medicaoList = document.getElementById('medicao-list');
+            const addMedicaoBtn = document.getElementById('add-medicao-btn');
+            const generatePdfBtn = document.getElementById('generate-pdf-btn');
+            const analiseAgenteBtn = document.getElementById('analise-agente-btn');
+            const reportTableBody = document.getElementById('report-table-body');
+            const themeToggle = document.getElementById('theme-toggle');
+            const sunIcon = document.getElementById('theme-toggle-sun');
+            const moonIcon = document.getElementById('theme-toggle-moon');
+            const liveOsPreview = document.getElementById('live-os-preview');
+            const downloadTemplateBtn = document.getElementById('download-template-btn');
+            const riskSummaryContainer = document.getElementById('risk-summary-container');
+            const employeeCountSpan = document.getElementById('employee-count');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const analysisOptionsDiv = document.getElementById('analysis-options');
+            const startAnalysisBtn = document.getElementById('start-analysis-btn');
+            const chatToggleBtn = document.getElementById('chat-toggle-btn');
+            const chatModal = document.getElementById('chat-modal');
+            const chatCloseBtn = document.getElementById('chat-close-btn');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            const agenteModalOverlay = document.getElementById('agente-modal-overlay');
+            const agenteCloseBtn = document.getElementById('agente-close-btn');
+            const agenteFeedbackDiv = document.getElementById('agente-feedback');
 
-
-        // --- FUNÇÕES AUXILIARES ---
-
-        function formatAsTitle(inputText) {
-            if (!inputText || typeof inputText !== 'string') return '';
-            let txt = inputText.toLowerCase().split(" ");
-            let excecoes = ["da", "de", "do", "dos", "das", "em", "para", "com", "no", "na", "nos", "nas"];
-            for (let i = 0; i < txt.length; i++) {
-                if (!excecoes.includes(txt[i]) || i === 0) {
-                    txt[i] = txt[i].charAt(0).toUpperCase() + txt[i].slice(1);
-                }
-            }
-            return txt.join(" ");
-        }
-
-        function showNotification(type, title, message) {
-            notificationArea.className = 'p-4 mb-4 text-sm rounded-lg';
-            let typeClasses = type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300');
-            notificationArea.classList.add(...typeClasses.split(' '));
-            notificationTitle.textContent = title;
-            notificationMessage.textContent = message;
-        }
-
-        function hideNotification() { notificationArea.classList.add('hidden'); }
-        
-        // --- LÓGICA DO CHECKLIST ---
-        function updateChecklist(item, isComplete) {
-            checklistStatus[item] = isComplete;
-            const element = document.getElementById(`checklist-${item}`);
-            const icon = element.querySelector('.status-icon');
-            if (isComplete) {
-                element.classList.add('completed');
-                icon.innerHTML = '&#10003;'; // Checkmark
-            } else {
-                element.classList.remove('completed');
-                const number = item === 'xlsx' ? '1' : (item === 'doc' ? '2' : '3');
-                icon.innerHTML = number;
-            }
-            checkFormReadiness();
-        }
-
-        // --- LÓGICA DE CRIAÇÃO DA UI ---
-
-        function createRiskCards() {
-            const container = document.getElementById('risk-cards-container');
-            container.innerHTML = '';
-            const riskCategories = {
-                fisico: { title: 'Risco Físico', colorVar: '--risk-fisico-color' },
-                quimico: { title: 'Risco Químico', colorVar: '--risk-quimico-color' },
-                biologico: { title: 'Risco Biológico', colorVar: '--risk-biologico-color' },
-                acidente: { title: 'Risco de Acidente', colorVar: '--risk-acidente-color' },
-                ergonomico: { title: 'Risco Ergonômico', colorVar: '--risk-ergonomico-color' }
-            };
-
-            const displayOrder = ['acidente', 'ergonomico', 'quimico', 'fisico', 'biologico'];
-
-            for (const key of displayOrder) {
-                const category = riskCategories[key];
-                const card = document.createElement('div');
-                card.className = 'border-2 rounded-lg p-4 space-y-3 transition-all';
-                card.style.borderColor = `var(${category.colorVar})`;
-                
-                card.innerHTML = `
-                    <h4 class="text-lg font-semibold" style="color: var(${category.colorVar});">${category.title}</h4>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Perigos / Fatores de Risco:</label>
-                        <div id="risk-${key}-checkboxes" class="risk-checkbox-container"></div>
-                        <textarea id="risk-${key}-outro" rows="1" class="w-full p-2 border rounded-lg mt-2" placeholder="Outro..."></textarea>
-                    </div>
-                    <div>
-                        <label for="damage-${key}" class="block text-sm font-medium mb-1">Possíveis Danos à Saúde:</label>
-                        <textarea id="damage-${key}" rows="3" class="w-full p-2 border rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
-                    </div>
-                `;
-                container.appendChild(card);
-                container.querySelectorAll('input, textarea').forEach(el => {
-                    el.addEventListener('input', () => {
-                        updateLivePreview();
-                        updateRiskSummary();
-                    });
-                });
-            }
-            populateRiskCheckboxes();
-        }
-
-        function populateRiskCheckboxes() {
-            for (const category in riskData) {
-                const container = document.getElementById(`risk-${category}-checkboxes`);
-                if (container) {
-                    const sortedRisks = Object.keys(riskData[category]).sort();
-                    for (const risk of sortedRisks) {
-                        const label = document.createElement('label');
-                        label.className = 'flex items-center space-x-2 cursor-pointer p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded';
-                        const input = document.createElement('input');
-                        input.type = 'checkbox'; input.value = risk; input.dataset.category = category;
-                        input.className = 'rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600';
-                        const span = document.createElement('span'); span.textContent = risk;
-                        label.appendChild(input); label.appendChild(span); container.appendChild(label);
-                        input.addEventListener('change', () => {
-                            handleRiskSelectionChange();
-                            updateLivePreview();
-                            updateRiskSummary();
-                        });
+            // --- FUNÇÕES AUXILIARES ---
+            function formatAsTitle(inputText) {
+                if (!inputText || typeof inputText !== 'string') return '';
+                let txt = inputText.toLowerCase().split(" ");
+                let excecoes = ["da", "de", "do", "dos", "das", "em", "para", "com", "no", "na", "nos", "nas"];
+                for (let i = 0; i < txt.length; i++) {
+                    if (!excecoes.includes(txt[i]) || i === 0) {
+                        txt[i] = txt[i].charAt(0).toUpperCase() + txt[i].slice(1);
                     }
                 }
+                return txt.join(" ");
             }
-        }
-        
-        // --- LÓGICA DE EVENTOS E MANIPULAÇÃO DE DADOS ---
 
-        function handleRiskSelectionChange() {
-            const categories = ['fisico', 'quimico', 'biologico', 'acidente', 'ergonomico'];
-            categories.forEach(category => {
-                const damageTextarea = document.getElementById(`damage-${category}`);
-                const allDamages = new Set();
-                document.querySelectorAll(`#risk-${category}-checkboxes input:checked`).forEach(checkbox => {
-                    const risk = checkbox.value;
-                    const damages = riskData[category][risk] || [];
-                    damages.forEach(damage => allDamages.add(damage));
-                });
-                damageTextarea.value = Array.from(allDamages).join(', ');
-            });
-        }
-
-        xlsxInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) {
-                updateChecklist('xlsx', false);
-                return;
+            function showNotification(type, title, message) {
+                notificationArea.className = 'p-4 mb-4 text-sm rounded-lg';
+                let typeClasses = type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : (type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300');
+                notificationArea.classList.add(...typeClasses.split(' '));
+                notificationTitle.textContent = title;
+                notificationMessage.textContent = message;
             }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    employeeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                    processAndPopulateSelectors();
-                    updateChecklist('xlsx', true);
-                } catch (error) {
-                    showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique o formato (.xlsx) e as colunas.');
-                    updateChecklist('xlsx', false);
+
+            function hideNotification() { notificationArea.classList.add('hidden'); }
+            
+            // --- LÓGICA DO CHECKLIST ---
+            function updateChecklist(item, isComplete) {
+                checklistStatus[item] = isComplete;
+                const element = document.getElementById(`checklist-${item}`);
+                const icon = element.querySelector('.status-icon');
+                if (isComplete) {
+                    element.classList.add('completed');
+                    icon.innerHTML = '&#10003;'; // Checkmark
+                } else {
+                    element.classList.remove('completed');
+                    const number = item === 'xlsx' ? '1' : (item === 'doc' ? '2' : '3');
+                    icon.innerHTML = number;
                 }
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-        function processAndPopulateSelectors() {
-            structuredRoles = {};
-            employeeData.forEach(employee => {
-                const setor = findValueInObject(employee, ['Setor']);
-                const funcao = findValueInObject(employee, ['Função', 'Cargo']);
-                if (setor && funcao) {
-                    if (!structuredRoles[setor]) {
-                        structuredRoles[setor] = new Set();
-                    }
-                    structuredRoles[setor].add(funcao);
-                }
-            });
-
-            setorSelect.innerHTML = '<option value="">-- Selecione um setor --</option>';
-            Object.keys(structuredRoles).sort().forEach(setor => {
-                const option = document.createElement('option');
-                option.value = setor;
-                option.textContent = formatAsTitle(setor);
-                setorSelect.appendChild(option);
-            });
-            setorSelect.disabled = false;
-            setorSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
-            funcaoSelect.innerHTML = '<option value="">Selecione um setor...</option>';
-            funcaoSelect.disabled = true;
-            sstDocInput.disabled = false;
-        }
-
-        setorSelect.addEventListener('change', () => {
-            const selectedSetor = setorSelect.value;
-            funcaoSelect.innerHTML = '<option value="">-- Selecione uma função --</option>';
-            if (selectedSetor && structuredRoles[selectedSetor]) {
-                Array.from(structuredRoles[selectedSetor]).sort().forEach(funcao => {
-                    const option = document.createElement('option');
-                    option.value = funcao;
-                    option.textContent = formatAsTitle(funcao);
-                    funcaoSelect.appendChild(option);
-                });
-                funcaoSelect.disabled = false;
-                funcaoSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
-            } else {
-                funcaoSelect.disabled = true;
-            }
-            updateChecklist('funcao', false);
-        });
-
-        funcaoSelect.addEventListener('change', () => {
-            const selectedFuncao = funcaoSelect.value;
-            const selectedSetor = setorSelect.value;
-            const selected = selectedFuncao !== "";
-            updateChecklist('funcao', selected);
-
-            hideNotification(); // Limpa notificações antigas
-
-            if (selected) {
-                // Lógica para verificar duplicidade de função em outros setores
-                const otherSectorsWithSameFunction = [];
-                for (const setor in structuredRoles) {
-                    if (setor !== selectedSetor) {
-                        const funcoesInSetor = structuredRoles[setor];
-                        if (funcoesInSetor.has(selectedFuncao)) {
-                            otherSectorsWithSameFunction.push(formatAsTitle(setor));
-                        }
-                    }
-                }
-
-                if (otherSectorsWithSameFunction.length > 0) {
-                    const sectorList = otherSectorsWithSameFunction.join(', ');
-                    showNotification(
-                        'warning', 
-                        'Atenção: Função Duplicada!', 
-                        `A função "${formatAsTitle(selectedFuncao)}" também existe no(s) setor(es): ${sectorList}. Verifique se as informações de risco estão corretas para o setor selecionado.`
-                    );
-                }
-
-                updateDetailsFromSources();
-                updateLivePreview();
-            }
-        });
-
-        sstDocInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) {
-                updateChecklist('doc', false);
-                return;
+                checkFormReadiness();
             }
 
-            aiStatus.innerHTML = '<div class="loader"></div> <span>Processando documento...</span>';
-            validationSection.classList.add('hidden');
-            hideNotification();
-            progressContainer.classList.add('hidden');
+            // --- LÓGICA DE CRIAÇÃO DA UI ---
+            function createRiskCards() {
+                const container = document.getElementById('risk-cards-container');
+                container.innerHTML = '';
+                const riskCategories = {
+                    fisico: { title: 'Risco Físico', colorVar: '--risk-fisico-color' },
+                    quimico: { title: 'Risco Químico', colorVar: '--risk-quimico-color' },
+                    biologico: { title: 'Risco Biológico', colorVar: '--risk-biologico-color' },
+                    acidente: { title: 'Risco de Acidente', colorVar: '--risk-acidente-color' },
+                    ergonomico: { title: 'Risco Ergonômico', colorVar: '--risk-ergonomico-color' }
+                };
 
-            // Tenta a análise direta com a IA para PDFs primeiro
-            if (file.type === 'application/pdf') {
-                try {
-                    aiStatus.innerHTML = '<div class="loader"></div> <span>Analisando PDF com IA...</span>';
-                    const reader = new FileReader();
-                    const base64String = await new Promise((resolve, reject) => {
-                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    });
+                const displayOrder = ['acidente', 'ergonomico', 'quimico', 'fisico', 'biologico'];
+
+                for (const key of displayOrder) {
+                    const category = riskCategories[key];
+                    const card = document.createElement('div');
+                    card.className = 'border-2 rounded-lg p-4 space-y-3 transition-all';
+                    card.style.borderColor = `var(${category.colorVar})`;
                     
-                    const success = await analyzeDocumentFileWithAI(base64String, file.type);
-                    if (success) {
-                        return; // Se funcionou, encerra o processo aqui.
-                    }
-                    showNotification('warning', 'Análise Incompleta', 'A análise direta não retornou dados. Tentando OCR como alternativa.');
-                } catch (error) {
-                    console.warn("Análise direta com IA falhou. Tentando OCR como alternativa.", error);
-                    showNotification('warning', 'Falha na Análise Direta', 'Tentando extrair texto com OCR como alternativa.');
-                }
-            }
-
-            // Se a análise direta falhar, ou se o arquivo for uma imagem, usa o OCR
-            aiStatus.innerHTML = '<div class="loader"></div> <span>Convertendo para texto (OCR)...</span>';
-            progressContainer.classList.remove('hidden');
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-
-            try {
-                const worker = await Tesseract.createWorker('por', 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            progressBar.style.width = `${progress}%`;
-                            progressBar.textContent = `${progress}%`;
-                        }
-                    },
-                });
-                const { data: { text } } = await worker.recognize(file);
-                await worker.terminate();
-                
-                progressContainer.classList.add('hidden');
-                aiStatus.innerHTML = '<div class="loader"></div> <span>Analisando texto extraído com IA...</span>';
-                
-                await analyzeExtractedTextWithAI(text);
-
-            } catch (ocrError) {
-                console.error("Erro no processo de OCR:", ocrError);
-                aiStatus.textContent = '';
-                progressContainer.classList.add('hidden');
-                showNotification('error', 'Erro de OCR!', `Falha ao ler o documento com OCR: ${ocrError.message || 'Erro desconhecido'}.`);
-                updateChecklist('doc', false);
-            }
-        });
-
-        
-        logoInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) {
-                logoDataUrl = null;
-                updateLivePreview();
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                logoDataUrl = e.target.result;
-                updateLivePreview();
-            };
-            reader.readAsDataURL(file);
-        });
-        
-        // --- LÓGICA DE IA ---
-
-        async function executeGeminiAnalysis(payload) {
-            try {
-                const apiKey = ""; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
-                }
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
-                    const jsonText = result.candidates[0].content.parts[0].text;
-                    const analysis = JSON.parse(jsonText);
-
-                    if (analysis && analysis.cargos && analysis.cargos.length > 0) {
-                        documentAnalysisResult = analysis;
-                        populateFieldsFromAI();
-                        updateChecklist('doc', true);
-                        aiStatus.innerHTML = '✅ Análise com IA concluída!';
-                        return true; // Sucesso
-                    } else {
-                         console.warn("IA processou o documento mas não encontrou cargos.");
-                         return false; // Falha (resultado vazio), permite o fallback
-                    }
-                } else {
-                   throw new Error("A resposta da IA não continha os dados esperados.");
-                }
-
-            } catch (error) {
-                console.error("Erro na análise com IA:", error);
-                aiStatus.innerHTML = '⚠️ Falha na IA. Verifique os dados manualmente.';
-                updateDetailsFromSources(); 
-                updateChecklist('doc', true);
-                throw error; // Lança o erro para ser capturado pelo bloco de fallback
-            }
-        }
-
-        async function analyzeDocumentFileWithAI(base64Data, mimeType) {
-            const prompt = `
-                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o documento de SST fornecido e retorne as informações em um formato JSON estruturado.
-                Sua tarefa é interpretar o conteúdo e extrair os dados de TODAS as funções descritas no documento.
-                
-                Retorne um JSON com uma chave "cargos", que é um array de objetos. Para cada cargo/função encontrado, crie um objeto com as seguintes chaves:
-                1.  **setor**: O nome do setor ou departamento.
-                2.  **funcao**: O nome da função ou cargo.
-                3.  **atividades**: A descrição detalhada das atividades da função.
-                4.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
-                5.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
-
-                Se uma informação não for encontrada, retorne uma string vazia ou uma lista vazia.
-            `;
-            const payload = {
-                contents: [{
-                    parts: [
-                        { text: prompt },
-                        { inlineData: { mimeType: mimeType, data: base64Data } }
-                    ]
-                }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: { type: "OBJECT", properties: { cargos: { type: "ARRAY", items: { type: "OBJECT", properties: { setor: { type: "STRING" }, funcao: { type: "STRING" }, atividades: { type: "STRING" }, epis: { type: "ARRAY", items: { type: "OBJECT", properties: { nome: { type: "STRING" }, ca: { type: "STRING" } } } }, medicoes: { type: "ARRAY", items: { type: "OBJECT", properties: { agente: { type: "STRING" }, valor: { type: "STRING" }, unidade: { type: "STRING" } } } } } } } } }
-                }
-            };
-            return await executeGeminiAnalysis(payload);
-        }
-
-        async function analyzeExtractedTextWithAI(text) {
-            const prompt = `
-                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, que foi extraído de um documento de SST, e retorne as informações em um formato JSON estruturado.
-                Sua tarefa é interpretar o conteúdo e extrair os dados de TODAS as funções descritas no documento.
-                
-                Retorne um JSON com uma chave "cargos", que é um array de objetos. Para cada cargo/função encontrado, crie um objeto com as seguintes chaves:
-                1.  **setor**: O nome do setor ou departamento.
-                2.  **funcao**: O nome da função ou cargo.
-                3.  **atividades**: A descrição detalhada das atividades da função.
-                4.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
-                5.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
-
-                Se uma informação não for encontrada, retorne uma string vazia ou uma lista vazia.
-
-                Texto para análise:
-                ---
-                ${text}
-                ---
-            `;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                     responseMimeType: "application/json",
-                    responseSchema: { type: "OBJECT", properties: { cargos: { type: "ARRAY", items: { type: "OBJECT", properties: { setor: { type: "STRING" }, funcao: { type: "STRING" }, atividades: { type: "STRING" }, epis: { type: "ARRAY", items: { type: "OBJECT", properties: { nome: { type: "STRING" }, ca: { type: "STRING" } } } }, medicoes: { type: "ARRAY", items: { type: "OBJECT", properties: { agente: { type: "STRING" }, valor: { type: "STRING" }, unidade: { type: "STRING" } } } } } } } } }
-                }
-            };
-            return await executeGeminiAnalysis(payload);
-        }
-        
-        function populateFieldsFromAI() {
-            if (!documentAnalysisResult || !documentAnalysisResult.cargos || documentAnalysisResult.cargos.length === 0) {
-                showNotification('warning', 'IA não encontrou dados', 'A IA não conseguiu extrair informações de funções do documento. Por favor, selecione manualmente.');
-                return;
-            }
-
-            const firstRole = documentAnalysisResult.cargos[0];
-            
-            // Tenta selecionar o setor e função retornados pela IA
-            if (firstRole.setor) {
-                const setorOption = [...setorSelect.options].find(opt => opt.value.toLowerCase() === firstRole.setor.toLowerCase());
-                if (setorOption) {
-                    setorSelect.value = setorOption.value;
-                    setorSelect.dispatchEvent(new Event('change'));
-                }
-            }
-             // Aguarda um instante para o select de função ser populado
-            setTimeout(() => {
-                if (firstRole.funcao) {
-                    const funcaoOption = [...funcaoSelect.options].find(opt => opt.value.toLowerCase() === firstRole.funcao.toLowerCase());
-                    if(funcaoOption) {
-                        funcaoSelect.value = funcaoOption.value;
-                        funcaoSelect.dispatchEvent(new Event('change'));
-                    }
-                }
-            }, 100);
-        }
-
-        function findValueInObject(obj, keys) {
-            if (!obj) return null;
-            const objKeys = Object.keys(obj);
-            for (const key of keys) {
-                const foundKey = objKeys.find(objKey => objKey.toLowerCase().includes(key.toLowerCase()));
-                if (foundKey) {
-                    return obj[foundKey];
-                }
-            }
-            return null;
-        }
-
-        function updateDetailsFromSources() {
-            const selectedSetor = setorSelect.value;
-            const selectedFuncao = funcaoSelect.value;
-            if (!selectedSetor || !selectedFuncao) return;
-
-            validationSection.classList.remove('hidden');
-            
-            // Limpa campos antes de popular
-            manualAtividades.value = '';
-            epiList.innerHTML = '';
-            medicaoList.innerHTML = '';
-
-            let dataFrom = 'planilha';
-            let roleData = null;
-
-            // 1. Tenta pegar dados da análise da IA
-            if (documentAnalysisResult && documentAnalysisResult.cargos) {
-                roleData = documentAnalysisResult.cargos.find(cargo => cargo.funcao.toLowerCase() === selectedFuncao.toLowerCase());
-                if (roleData) dataFrom = 'IA';
-            }
-
-            // 2. Se não achou na IA, pega da planilha
-            if (!roleData) {
-                const representativeEmployee = employeeData.find(emp => {
-                    return findValueInObject(emp, ['Setor']) === selectedSetor && findValueInObject(emp, ['Função', 'Cargo']) === selectedFuncao;
-                });
-                if (representativeEmployee) {
-                    roleData = {
-                        atividades: findValueInObject(representativeEmployee, ['Atividades', 'Descrição da Função', 'Descrição das Atividades', 'Tarefas']) || '',
-                        epis: [],
-                        medicoes: []
-                    };
-                    const episFromSheet = findValueInObject(representativeEmployee, ['EPI']);
-                    if (episFromSheet && typeof episFromSheet === 'string') {
-                        const epiItems = episFromSheet.split(';').filter(item => item.trim() !== '');
-                        epiItems.forEach(item => {
-                            const caMatch = item.match(/C\.A\.\s*-\s*(\d+)/i);
-                            const ca = caMatch ? caMatch[1] : '';
-                            const name = item.replace(/-\s*C\.A\.\s*-\s*\d+/i, '').trim();
-                            roleData.epis.push({ nome: name, ca: ca });
+                    card.innerHTML = `
+                        <h4 class="text-lg font-semibold" style="color: var(${category.colorVar});">${category.title}</h4>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Perigos / Fatores de Risco:</label>
+                            <div id="risk-${key}-checkboxes" class="risk-checkbox-container"></div>
+                            <textarea id="risk-${key}-outro" rows="1" class="w-full p-2 border rounded-lg mt-2" placeholder="Outro..."></textarea>
+                        </div>
+                        <div>
+                            <label for="damage-${key}" class="block text-sm font-medium mb-1">Possíveis Danos à Saúde:</label>
+                            <textarea id="damage-${key}" rows="3" class="w-full p-2 border rounded-lg" placeholder="Danos serão preenchidos automaticamente..."></textarea>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                    container.querySelectorAll('input, textarea').forEach(el => {
+                        el.addEventListener('input', () => {
+                            updateLivePreview();
                         });
-                    }
+                    });
                 }
+                populateRiskCheckboxes();
             }
 
-            // 3. Popula os campos com os dados encontrados
-            if (roleData) {
-                manualAtividades.value = roleData.atividades || '';
-                if (roleData.epis && Array.isArray(roleData.epis)) {
-                    roleData.epis.forEach(epi => addEpiRow(epi.nome, epi.ca));
-                }
-                if (roleData.medicoes && Array.isArray(roleData.medicoes)) {
-                    roleData.medicoes.forEach(med => addMedicaoRow(med.agente, med.valor, med.unidade));
-                }
-            }
-            
-            // Atualiza o contador de funcionários
-            const matchingEmployees = employeeData.filter(emp => {
-                const empSetor = findValueInObject(emp, ['Setor']);
-                const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
-                return empSetor === selectedSetor && empFuncao === selectedFuncao;
-            });
-            employeeCountSpan.textContent = `(${matchingEmployees.length} funcionário(s))`;
-
-            updateRiskSummary();
-            checkFormReadiness();
-        }
-
-        function checkFormReadiness() {
-            const allChecked = Object.values(checklistStatus).every(status => status);
-            generatePdfBtn.disabled = !allChecked;
-        }
-        
-        // --- LÓGICA DOS CAMPOS DINÂMICOS ---
-        
-        function addEpiRow(name = '', ca = '') {
-            const div = document.createElement('div');
-            div.className = 'dynamic-input-row epi';
-            div.innerHTML = `
-                <input type="text" value="${name}" placeholder="Nome do EPI" class="w-full p-2 border rounded-lg">
-                <input type="text" value="${ca}" placeholder="C.A. (opcional)" class="w-full p-2 border rounded-lg">
-                <button class="remove-btn" type="button">&times;</button>
-            `;
-            div.querySelector('.remove-btn').addEventListener('click', () => {
-                div.remove();
-                updateLivePreview();
-            });
-            div.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePreview));
-            epiList.appendChild(div);
-        }
-
-        function addMedicaoRow(agent = '', value = '', unit = '') {
-            const div = document.createElement('div');
-            div.className = 'dynamic-input-row medicao';
-            div.innerHTML = `
-                <input type="text" value="${agent}" placeholder="Agente" class="w-full p-2 border rounded-lg">
-                <input type="text" value="${value}" placeholder="Valor" class="w-full p-2 border rounded-lg">
-                <input type="text" value="${unit}" placeholder="Unidade/Técnica" class="w-full p-2 border rounded-lg">
-                <button class="remove-btn" type="button">&times;</button>
-            `;
-            div.querySelector('.remove-btn').addEventListener('click', () => {
-                div.remove();
-                updateLivePreview();
-            });
-            div.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePreview));
-            medicaoList.appendChild(div);
-        }
-
-        addEpiBtn.addEventListener('click', () => addEpiRow());
-        addMedicaoBtn.addEventListener('click', () => addMedicaoRow());
-        [manualAtividades, companyNameInput, companyUnitInput].forEach(el => el.addEventListener('input', updateLivePreview));
-
-        function validateForm() {
-            let isValid = true;
-            const fieldsToValidate = [
-                { el: setorSelect, msg: 'Selecione um setor.' },
-                { el: funcaoSelect, msg: 'Selecione uma função.' }
-            ];
-            fieldsToValidate.forEach(field => field.el.classList.remove('blinking-border'));
-            hideNotification();
-            let missingFieldsMessages = [];
-            fieldsToValidate.forEach(field => {
-                if (!field.el.value.trim()) {
-                    isValid = false;
-                    field.el.classList.add('blinking-border');
-                    missingFieldsMessages.push(field.msg);
-                }
-            });
-            if (!isValid) {
-                showNotification('warning', 'Campos Obrigatórios!', missingFieldsMessages.join(' '));
-            }
-            return isValid;
-        }
-
-        generatePdfBtn.addEventListener('click', async () => {
-            if (!validateForm()) return;
-
-            const selectedSetor = setorSelect.value;
-            const selectedFuncao = funcaoSelect.value;
-
-            const matchingEmployees = employeeData.filter(emp => {
-                const empSetor = findValueInObject(emp, ['Setor']);
-                const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
-                return empSetor === selectedSetor && empFuncao === selectedFuncao;
-            });
-
-            if (matchingEmployees.length === 0) {
-                showNotification('warning', 'Nenhum Funcionário', 'Nenhum funcionário encontrado para o setor e função selecionados.');
-                return;
-            }
-            
-            showNotification('success', 'Iniciando Geração', `Gerando OS para ${matchingEmployees.length} funcionário(s). Vários downloads serão iniciados.`);
-
-            for (const employee of matchingEmployees) {
-                const osHtml = generateOsHtmlForEmployee(employee);
-                document.getElementById('os-preview').innerHTML = osHtml;
-                
-                const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
-                const fileName = `OS - ${employeeName}.pdf`;
-                const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-                
-                await html2pdf().from(document.getElementById('os-preview')).set(options).save();
-                
-                addToReport({ 
-                    nome: formatAsTitle(employeeName), 
-                    setor: formatAsTitle(selectedSetor), 
-                    funcao: formatAsTitle(selectedFuncao) 
-                });
-            }
-        });
-        
-        function getCombinedRisks(category) {
-            const selectedRisks = Array.from(document.querySelectorAll(`#risk-${category}-checkboxes input:checked`)).map(cb => cb.value);
-            const otherRisk = document.getElementById(`risk-${category}-outro`).value.trim();
-            if (otherRisk) selectedRisks.push(otherRisk);
-            return selectedRisks.join(', ') || defaultText;
-        }
-
-        function getStructuredEpiHtml() {
-            const rows = epiList.querySelectorAll('.dynamic-input-row');
-            if (rows.length === 0) return `<p>${defaultText}</p>`;
-            
-            let tableHtml = '<table><tr><td style="font-weight: bold;">Equipamento</td><td style="font-weight: bold;">C.A.</td></tr>';
-            rows.forEach(row => {
-                const inputs = row.querySelectorAll('input');
-                const name = inputs[0].value.trim() || 'N/A';
-                const ca = inputs[1].value.trim() || 'N/A';
-                tableHtml += `<tr><td>${name}</td><td>${ca}</td></tr>`;
-            });
-            tableHtml += '</table>';
-            return tableHtml;
-        }
-        
-        function getStructuredMedicaoHtml() {
-            const rows = medicaoList.querySelectorAll('.dynamic-input-row');
-            if (rows.length === 0) return `<p>${defaultText}</p>`;
-
-            let tableHtml = '<table><tr><td style="font-weight: bold;">Agente</td><td style="font-weight: bold;">Valor Medido</td><td style="font-weight: bold;">Unidade/Técnica</td></tr>';
-            rows.forEach(row => {
-                const inputs = row.querySelectorAll('input');
-                const agent = inputs[0].value.trim() || 'N/A';
-                const value = inputs[1].value.trim() || 'N/A';
-                const unit = inputs[2].value.trim() || 'N/A';
-                tableHtml += `<tr><td>${agent}</td><td>${value}</td><td>${unit}</td></tr>`;
-            });
-            tableHtml += '</table>';
-            return tableHtml;
-        }
-
-        function generateOsHtmlForEmployee(employee) {
-            const empresa = companyNameInput.value.trim() || '[Nome da Empresa]';
-            const unidade = companyUnitInput.value.trim() || '[Unidade a ser definida]';
-            const setor = setorSelect.value;
-            const funcao = funcaoSelect.value;
-            const atividadesText = manualAtividades.value.trim() || defaultText;
-            const epiHtml = getStructuredEpiHtml();
-            const medicoesHtml = getStructuredMedicaoHtml();
-            
-            const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']) || 'N/A';
-            const admissionDate = findValueInObject(employee, ['Data de Admissão']) || 'N/A';
-            const formattedEmployeeName = formatAsTitle(employeeName);
-            const formattedSetor = formatAsTitle(setor);
-            const formattedFuncao = formatAsTitle(funcao);
-            const logoHtml = logoDataUrl ? `<img src="${logoDataUrl}" alt="Logotipo" style="max-width: 150px; max-height: 80px; object-fit: contain;">` : '';
-
-            return `
-                <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor, conforme estabelece a NR-01 , sobre as condições de segurança e saúde às quais estão expostos, de forma a padronizar comportamentos para prevenir acidentes e/ou doenças ocupacionais.</p>
-                <table class="header-table">
-                    <tr>
-                        <td rowspan="3" style="width: 160px; text-align: center; vertical-align: middle; border-right: 1px solid #000;">${logoHtml}</td>
-                        <td colspan="2"><strong>Empresa:</strong> ${empresa}</td>
-                        <td colspan="2"><strong>Unidade:</strong> ${unidade}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td>
-                        <td colspan="2"><strong>Data de Admissão:</strong> ${admissionDate}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"><strong>Setor de Trabalho:</strong> ${formattedSetor}</td>
-                        <td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td>
-                    </tr>
-                </table>
-                <h3>TAREFAS DA FUNÇÃO</h3>
-                <p>${atividadesText}</p>
-                <h3>AGENTES DE RISCOS OCUPACIONAIS - NR01 item 1.4.1 b) I / item 1.4.4 a)</h3>
-                <table>
-                    <tr><td><strong>Acidente:</strong> ${getCombinedRisks('acidente')}</td><td><strong>Físico:</strong> ${getCombinedRisks('fisico')}</td></tr>
-                    <tr><td><strong>Ergonômico:</strong> ${getCombinedRisks('ergonomico')}</td><td><strong>Químico:</strong> ${getCombinedRisks('quimico')}</td></tr>
-                    <tr><td colspan="2"><strong>Biológico:</strong> ${getCombinedRisks('biologico')}</td></tr>
-                </table>
-                <h3>POSSÍVEIS DANOS À SAÚDE - NR01 item 1.4.1 b) I.</h3>
-                <table>
-                    <tr><td><strong>Acidente:</strong> ${document.getElementById('damage-acidente').value.trim() || defaultText}</td><td><strong>Físico:</strong> ${document.getElementById('damage-fisico').value.trim() || defaultText}</td></tr>
-                    <tr><td><strong>Ergonômico:</strong> ${document.getElementById('damage-ergonomico').value.trim() || defaultText}</td><td><strong>Químico:</strong> ${document.getElementById('damage-quimico').value.trim() || defaultText}</td></tr>
-                    <tr><td colspan="2"><strong>Biológico:</strong> ${document.getElementById('damage-biologico').value.trim() || defaultText}</td></tr>
-                </table>
-                <h3>MEDIDAS ADOTADAS PELA EMPRESA PARA REDUZIR OS RISCOS OCUPACIONAIS NR01 item 1.4.1 b) II / item 1.4.4 c)</h3>
-                ${epiHtml}
-                <p>Treinamento e Supervisão para execução das tarefas e uso dos EPI, em especial em relação aos trabalhos em altura, com poeiras e solventes; Guarda-corpo de proteção periferias; Monitoramento do ambiente do trabalho afim de corrigir condições inseguras encontradas, imediatamente; Fornecimento de cópia de ASO informando os resultados dos exames médicos e dos exames complementares de diagnóstico aos quais os próprios trabalhadores forem submetidos; Sinalização de Segurança no ambiente de trabalho; Fornecimento, Treinamento e Exigência de uso de EPI.</p>
-                <h3>INFORME DOS RESULTADOS DAS AVALIAÇÕES AMBIENTAIS NOS LOCAIS DE TRABALHO - NR01 item 1.4.1 b) IV.</h3>
-                ${medicoesHtml}
-                <h3>PROCEDIMENTOS A SEREM ADOTADOS EM SITUAÇÃO DE ACIDENTES E EMERGÊNCIAS - NR01 item 1.4.4 d) / item 1.4.1 e)</h3>
-                <p>Comunique imediatamente o acidente à chefia imediata ou na impossibilidade à pessoa que possa acessá-la; Preserve as condições do local de acidente até a comunicação com a autoridade competente; Siga as orientações correspondentes ao acidente e com as atribuições de sua função, indicados no “Plano de Respostas aos Possíveis Cenários de Emergência”, elaborado pela empresa”.</p>
-                <h3>ORIENTAÇÕES SOBRE CONSTATAÇÃO DE GRAVE E IMINENTE RISCO - NR01 item 1.4.4 e) / item 1.4.3 / item 1.4.3.1</h3>
-                <p>Sempre que constatar Grave e Iminente Risco à Vida e/ou Saúde, sua ou de outros, interrompa de imediato e com segurança as atividades; Informe imediatamente ao seu superior hierárquico; Registre a constatação e as medidas tomadas no “Registro de Condições de Grave e Iminente Risco”, conforme procedimento padronizados pela empresa; Aguarde as providências e liberação formal do cenário pela empresa.</p>
-                <p style="margin-top: 1rem;">Conforme Art. 158 da CLT e NR-01 item 1.4.2.1, o descumprimento imotivado das disposições legais e regulamentares sobre segurança e saúde no trabalho, inclusive das ordens de serviço expedidas pelo empregador, sujeita o empregado às penalidades legais, inclusive, demissão por justa causa.</p>
-                <table style="margin-top: 2rem; width: 100%; text-align: center; border: none;"><tr style="border: none;"><td style="border: none;">___________________________<br>SESMT</td><td style="border: none;">___________________________<br>Chefia Imediata</td></tr></table>
-                <p style="margin-top: 1rem;">Cópia recebida em: ______/______/______</p>
-                <div class="signature-line" style="margin-top: 3rem;">${formattedEmployeeName}</div>
-            `;
-        }
-
-        function updateLivePreview() {
-            const selectedSetor = setorSelect.value;
-            const selectedFuncao = funcaoSelect.value;
-            if (!selectedSetor || !selectedFuncao) {
-                liveOsPreview.innerHTML = `<p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que uma função for selecionada.</p>`;
-                return;
-            }
-            
-            const representativeEmployee = employeeData.find(emp => {
-                return findValueInObject(emp, ['Setor']) === selectedSetor && findValueInObject(emp, ['Função', 'Cargo']) === selectedFuncao;
-            });
-
-            if(representativeEmployee) {
-                liveOsPreview.innerHTML = generateOsHtmlForEmployee(representativeEmployee);
-            } else {
-                 liveOsPreview.innerHTML = `<p class="text-center text-gray-500">Selecione uma função para ver a pré-visualização.</p>`;
-            }
-        }
-        
-        function updateRiskSummary() {
-            if (!documentAnalysisResult || !documentAnalysisResult.cargos) {
-                riskSummaryContainer.innerHTML = `<p class="text-gray-500">Nenhum dado de documento analisado para exibir.</p>`;
-                return;
-            }
-
-            let html = '';
-            const sectors = {};
-            documentAnalysisResult.cargos.forEach(cargo => {
-                if (!sectors[cargo.setor]) {
-                    sectors[cargo.setor] = [];
-                }
-                sectors[cargo.setor].push(cargo);
-            });
-
-            for (const setor in sectors) {
-                html += `<div class="p-4 border rounded-lg" style="border-color: var(--border-color);">`;
-                html += `<h4 class="text-lg font-bold">${formatAsTitle(setor)}</h4>`;
-                sectors[setor].forEach(cargo => {
-                    html += `<div class="ml-4 mt-2">`;
-                    html += `<p class="font-semibold">${formatAsTitle(cargo.funcao)}</p>`;
-                    // Adicione mais detalhes se desejar, por exemplo, uma lista de riscos.
-                    html += `</div>`;
-                });
-                html += `</div>`;
-            }
-            riskSummaryContainer.innerHTML = html;
-        }
-
-        
-        function addToReport(data) { generatedOSReport.push(data); updateReportTable(); }
-        function updateReportTable() {
-            reportTableBody.innerHTML = '';
-            generatedOSReport.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.nome}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.setor}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.funcao}</td>`;
-                reportTableBody.appendChild(row);
-            });
-        }
-        
-        // --- LÓGICA DO CHAT ---
-        function toggleChat() {
-            chatModal.classList.toggle('hidden');
-        }
-
-        function addChatMessage(text, sender) {
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${sender}`;
-            bubble.textContent = text;
-            chatMessages.appendChild(bubble);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function handleChatSend() {
-            const userInput = chatInput.value.trim();
-            if (userInput === '') return;
-
-            addChatMessage(userInput, 'user');
-            chatInput.value = '';
-
-            let response = "Desculpe, não entendi. Você pode me perguntar sobre 'funções encontradas', 'atividades do [cargo]', 'EPIs para [cargo]' ou pedir para 'identificar os riscos' para a função selecionada.";
-
-            if (!documentAnalysisResult && !userInput.toLowerCase().includes('olá')) {
-                addChatMessage("Por favor, primeiro analise um documento de SST para que eu possa ajudá-lo.", 'ai');
-                return;
-            }
-
-            if (userInput.toLowerCase().includes('funções encontradas')) {
-                const funcoes = documentAnalysisResult.cargos.map(c => formatAsTitle(c.funcao)).join(', ');
-                response = `Encontrei as seguintes funções no documento: ${funcoes}.`;
-            } else if (userInput.toLowerCase().startsWith('quais as atividades')) {
-                const cargoMatch = userInput.match(/atividades d[oae]\s+(.+)/i);
-                if (cargoMatch && cargoMatch[1]) {
-                    const cargoName = cargoMatch[1].trim();
-                    const cargoData = documentAnalysisResult.cargos.find(c => c.funcao.toLowerCase() === cargoName.toLowerCase());
-                    response = cargoData ? `Atividades para ${formatAsTitle(cargoName)}: ${cargoData.atividades}` : `Não encontrei a função "${cargoName}" no documento.`;
-                }
-            } else if (userInput.toLowerCase().startsWith('sugira epis para')) {
-                 const cargoMatch = userInput.match(/epis para\s+(.+)/i);
-                if (cargoMatch && cargoMatch[1]) {
-                    const cargoName = cargoMatch[1].trim();
-                    const cargoData = documentAnalysisResult.cargos.find(c => c.funcao.toLowerCase() === cargoName.toLowerCase());
-                    if (cargoData && cargoData.epis.length > 0) {
-                        const epiListStr = cargoData.epis.map(e => `${e.nome} (C.A.: ${e.ca || 'N/A'})`).join('; ');
-                        response = `EPIs para ${formatAsTitle(cargoName)}: ${epiListStr}.`;
-                    } else {
-                        response = `Não encontrei EPIs específicos para a função "${cargoName}" no documento.`;
-                    }
-                }
-            } else if (userInput.toLowerCase().includes('riscos')) {
-                const selectedFuncao = funcaoSelect.value;
-                if (!selectedFuncao) {
-                    response = "Por favor, selecione um setor e uma função primeiro para que eu possa ajudar a identificar os riscos.";
-                } else {
-                    response = `Ok, vou identificar e marcar os riscos mais comuns para a função de ${formatAsTitle(selectedFuncao)}. Por favor, aguarde um momento.`;
-                    // Simula a busca e marcação dos riscos
-                    const functionRiskMap = {
-                        'Manobrista': {'acidente': ['Batida contra', 'Atropelamento', 'Queda de mesmo nível'],'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']},
-                        'Orientador de Tráfego': {'acidente': ['Atropelamento', 'Queda de mesmo nível'],'fisico': ['Ruído', 'Calor'],'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']}
-                    };
-                    const risksToSelect = functionRiskMap[selectedFuncao];
-                    if (risksToSelect) {
-                        for (const category in risksToSelect) {
-                            risksToSelect[category].forEach(riskName => {
-                                const checkbox = document.querySelector(`#risk-${category}-checkboxes input[value="${riskName}"]`);
-                                if (checkbox) checkbox.checked = true;
+            function populateRiskCheckboxes() {
+                for (const category in riskData) {
+                    const container = document.getElementById(`risk-${category}-checkboxes`);
+                    if (container) {
+                        const sortedRisks = Object.keys(riskData[category]).sort();
+                        for (const risk of sortedRisks) {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center space-x-2 cursor-pointer p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded';
+                            const input = document.createElement('input');
+                            input.type = 'checkbox'; input.value = risk; input.dataset.category = category;
+                            input.className = 'rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600';
+                            const span = document.createElement('span'); span.textContent = risk;
+                            label.appendChild(input); label.appendChild(span); container.appendChild(label);
+                            input.addEventListener('change', () => {
+                                handleRiskSelectionChange();
+                                updateLivePreview();
                             });
                         }
-                        handleRiskSelectionChange();
-                        updateLivePreview();
-                        setTimeout(() => addChatMessage("Pronto! Marquei alguns riscos na aba 'Análise de Riscos'. Por favor, revise e ajuste se necessário.", 'ai'), 500);
-                        showNotification('success', 'IA', 'Riscos selecionados pela IA na aba de Análise de Riscos.');
-                    } else {
-                         response = `Não tenho um mapeamento de riscos pré-definido para "${formatAsTitle(selectedFuncao)}". Por favor, preencha manualmente.`;
                     }
                 }
-            } else if (userInput.toLowerCase().includes('olá') || userInput.toLowerCase().includes('oi')) {
-                response = "Olá! Como posso ajudar? Você pode me perguntar sobre as funções, atividades e EPIs encontrados no documento, ou pedir para eu identificar os riscos da função selecionada.";
             }
             
-            setTimeout(() => addChatMessage(response, 'ai'), 500);
-        }
+            // --- LÓGICA DE EVENTOS E MANIPULAÇÃO DE DADOS ---
+            function handleRiskSelectionChange() {
+                const categories = ['fisico', 'quimico', 'biologico', 'acidente', 'ergonomico'];
+                categories.forEach(category => {
+                    const damageTextarea = document.getElementById(`damage-${category}`);
+                    const allDamages = new Set();
+                    document.querySelectorAll(`#risk-${category}-checkboxes input:checked`).forEach(checkbox => {
+                        const risk = checkbox.value;
+                        const damages = riskData[category][risk] || [];
+                        damages.forEach(damage => allDamages.add(damage));
+                    });
+                    damageTextarea.value = Array.from(allDamages).join(', ');
+                });
+            }
 
-        // --- INICIALIZAÇÃO ---
-        document.addEventListener('DOMContentLoaded', () => {
+            function processAndPopulateSelectors() {
+                structuredRoles = {};
+                employeeData.forEach(employee => {
+                    const setor = findValueInObject(employee, ['Setor']);
+                    const funcao = findValueInObject(employee, ['Função', 'Cargo']);
+                    if (setor && funcao) {
+                        if (!structuredRoles[setor]) {
+                            structuredRoles[setor] = new Set();
+                        }
+                        structuredRoles[setor].add(funcao);
+                    }
+                });
+
+                setorSelect.innerHTML = '<option value="">-- Selecione um setor --</option>';
+                Object.keys(structuredRoles).sort().forEach(setor => {
+                    const option = document.createElement('option');
+                    option.value = setor;
+                    option.textContent = formatAsTitle(setor);
+                    setorSelect.appendChild(option);
+                });
+                setorSelect.disabled = false;
+                setorSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
+                funcaoSelect.innerHTML = '<option value="">Selecione um setor...</option>';
+                funcaoSelect.disabled = true;
+                sstDocInput.disabled = false;
+            }
+
+            function populateFuncaoSelect(selectedSetor) {
+                funcaoSelect.innerHTML = '<option value="">-- Selecione uma função --</option>';
+                if (selectedSetor && structuredRoles[selectedSetor]) {
+                    Array.from(structuredRoles[selectedSetor]).sort().forEach(funcao => {
+                        const option = document.createElement('option');
+                        option.value = funcao;
+                        option.textContent = formatAsTitle(funcao);
+                        funcaoSelect.appendChild(option);
+                    });
+                    funcaoSelect.disabled = false;
+                    funcaoSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
+                } else {
+                    funcaoSelect.disabled = true;
+                }
+            }
+
+            function updateDetailsFromSources() {
+                const selectedSetor = setorSelect.value;
+                const selectedFuncao = funcaoSelect.value;
+                if (!selectedSetor || !selectedFuncao) return;
+
+                validationSection.classList.remove('hidden');
+                
+                // Limpa campos antes de popular
+                manualAtividades.value = '';
+                epiList.innerHTML = '';
+                medicaoList.innerHTML = '';
+
+                let dataFrom = 'planilha';
+                let roleData = null;
+
+                // 1. Tenta pegar dados da análise da IA
+                if (documentAnalysisResult && documentAnalysisResult.cargos) {
+                    roleData = documentAnalysisResult.cargos.find(cargo => cargo.funcao.trim().toLowerCase() === selectedFuncao.trim().toLowerCase());
+                    if (roleData) dataFrom = 'IA';
+                }
+
+                // 2. Se não achou na IA, pega da planilha
+                if (!roleData) {
+                    const representativeEmployee = employeeData.find(emp => {
+                        const empSetor = findValueInObject(emp, ['Setor']);
+                        const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
+                        return empSetor && empFuncao && empSetor.trim().toLowerCase() === selectedSetor.trim().toLowerCase() && empFuncao.trim().toLowerCase() === selectedFuncao.trim().toLowerCase();
+                    });
+                    if (representativeEmployee) {
+                        roleData = {
+                            atividades: findValueInObject(representativeEmployee, ['Atividades', 'Descrição da Função', 'Descrição das Atividades', 'Tarefas']) || '',
+                            epis: [],
+                            medicoes: []
+                        };
+                        const episFromSheet = findValueInObject(representativeEmployee, ['EPI']);
+                        if (episFromSheet && typeof episFromSheet === 'string') {
+                            const epiItems = episFromSheet.split(';').filter(item => item.trim() !== '');
+                            epiItems.forEach(item => {
+                                const caMatch = item.match(/C\.A\.\s*-\s*(\d+)/i);
+                                const ca = caMatch ? caMatch[1] : '';
+                                const name = item.replace(/-\s*C\.A\.\s*-\s*\d+/i, '').trim();
+                                roleData.epis.push({ nome: name, ca: ca });
+                            });
+                        }
+                    }
+                }
+
+                // 3. Popula os campos com os dados encontrados
+                if (roleData) {
+                    manualAtividades.value = roleData.atividades || '';
+                    if (roleData.epis && Array.isArray(roleData.epis)) {
+                        roleData.epis.forEach(epi => addEpiRow(epi.nome, epi.ca));
+                    }
+                    if (roleData.medicoes && Array.isArray(roleData.medicoes)) {
+                        roleData.medicoes.forEach(med => addMedicaoRow(med.agente, med.valor, med.unidade));
+                    }
+                }
+                
+                // Atualiza o contador de funcionários
+                const matchingEmployees = employeeData.filter(emp => {
+                    const empSetor = findValueInObject(emp, ['Setor']);
+                    const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
+                    return empSetor && empFuncao && empSetor.trim().toLowerCase() === selectedSetor.trim().toLowerCase() && empFuncao.trim().toLowerCase() === selectedFuncao.trim().toLowerCase();
+                });
+                employeeCountSpan.textContent = `(${matchingEmployees.length} funcionário(s))`;
+
+                updateRiskSummary();
+                checkFormReadiness();
+            }
+
+            function checkFormReadiness() {
+                const allChecked = Object.values(checklistStatus).every(status => status);
+                generatePdfBtn.disabled = !allChecked;
+                analiseAgenteBtn.disabled = !allChecked;
+            }
+            
+            // --- LÓGICA DOS CAMPOS DINÂMICOS ---
+            function addEpiRow(name = '', ca = '') {
+                const div = document.createElement('div');
+                div.className = 'dynamic-input-row epi';
+                div.innerHTML = `
+                    <input type="text" value="${name}" placeholder="Nome do EPI" class="w-full p-2 border rounded-lg">
+                    <input type="text" value="${ca}" placeholder="C.A. (opcional)" class="w-full p-2 border rounded-lg">
+                    <button class="remove-btn" type="button">&times;</button>
+                `;
+                div.querySelector('.remove-btn').addEventListener('click', () => {
+                    div.remove();
+                    updateLivePreview();
+                });
+                div.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePreview));
+                epiList.appendChild(div);
+            }
+
+            function addMedicaoRow(agent = '', value = '', unit = '') {
+                const div = document.createElement('div');
+                div.className = 'dynamic-input-row medicao';
+                div.innerHTML = `
+                    <input type="text" value="${agent}" placeholder="Agente" class="w-full p-2 border rounded-lg">
+                    <input type="text" value="${value}" placeholder="Valor" class="w-full p-2 border rounded-lg">
+                    <input type="text" value="${unit}" placeholder="Unidade/Técnica" class="w-full p-2 border rounded-lg">
+                    <button class="remove-btn" type="button">&times;</button>
+                `;
+                div.querySelector('.remove-btn').addEventListener('click', () => {
+                    div.remove();
+                    updateLivePreview();
+                });
+                div.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePreview));
+                medicaoList.appendChild(div);
+            }
+
+            function validateForm() {
+                let isValid = true;
+                const fieldsToValidate = [
+                    { el: setorSelect, msg: 'Selecione um setor.' },
+                    { el: funcaoSelect, msg: 'Selecione uma função.' }
+                ];
+                fieldsToValidate.forEach(field => field.el.classList.remove('blinking-border'));
+                hideNotification();
+                let missingFieldsMessages = [];
+                fieldsToValidate.forEach(field => {
+                    if (!field.el.value.trim()) {
+                        isValid = false;
+                        field.el.classList.add('blinking-border');
+                        missingFieldsMessages.push(field.msg);
+                    }
+                });
+                if (!isValid) {
+                    showNotification('warning', 'Campos Obrigatórios!', missingFieldsMessages.join(' '));
+                }
+                return isValid;
+            }
+
+            function getCombinedRisks(category) {
+                const selectedRisks = Array.from(document.querySelectorAll(`#risk-${category}-checkboxes input:checked`)).map(cb => cb.value);
+                const otherRisk = document.getElementById(`risk-${category}-outro`).value.trim();
+                if (otherRisk) selectedRisks.push(otherRisk);
+                return selectedRisks.join(', ') || defaultText;
+            }
+
+            function getStructuredEpiHtml() {
+                const rows = epiList.querySelectorAll('.dynamic-input-row');
+                if (rows.length === 0) return `<p>${defaultText}</p>`;
+                
+                let tableHtml = '<table><tr><td style="font-weight: bold;">Equipamento</td><td style="font-weight: bold;">C.A.</td></tr>';
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input');
+                    const name = inputs[0].value.trim() || 'N/A';
+                    const ca = inputs[1].value.trim() || 'N/A';
+                    tableHtml += `<tr><td>${name}</td><td>${ca}</td></tr>`;
+                });
+                tableHtml += '</table>';
+                return tableHtml;
+            }
+            
+            function getStructuredMedicaoHtml() {
+                const rows = medicaoList.querySelectorAll('.dynamic-input-row');
+                if (rows.length === 0) return `<p>${defaultText}</p>`;
+
+                let tableHtml = '<table><tr><td style="font-weight: bold;">Agente</td><td style="font-weight: bold;">Valor Medido</td><td style="font-weight: bold;">Unidade/Técnica</td></tr>';
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input');
+                    const agent = inputs[0].value.trim() || 'N/A';
+                    const value = inputs[1].value.trim() || 'N/A';
+                    const unit = inputs[2].value.trim() || 'N/A';
+                    tableHtml += `<tr><td>${agent}</td><td>${value}</td><td>${unit}</td></tr>`;
+                });
+                tableHtml += '</table>';
+                return tableHtml;
+            }
+
+            function generateOsHtmlForEmployee(employee) {
+                const empresa = companyNameInput.value.trim() || '[Nome da Empresa]';
+                const unidade = companyUnitInput.value.trim() || '[Unidade a ser definida]';
+                const setor = setorSelect.value;
+                const funcao = funcaoSelect.value;
+                const atividadesText = manualAtividades.value.trim() || defaultText;
+                const epiHtml = getStructuredEpiHtml();
+                const medicoesHtml = getStructuredMedicaoHtml();
+                
+                const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']) || 'N/A';
+                const admissionDate = findValueInObject(employee, ['Data de Admissão']) || 'N/A';
+                const formattedEmployeeName = formatAsTitle(employeeName);
+                const formattedSetor = formatAsTitle(setor);
+                const formattedFuncao = formatAsTitle(funcao);
+                const logoHtml = logoDataUrl ? `<img src="${logoDataUrl}" alt="Logotipo" style="max-width: 150px; max-height: 80px; object-fit: contain;">` : '';
+
+                return `
+                    <p>Pela presente Ordem de serviço, objetivamos informar os trabalhadores que executam suas atividades laborais nesse setor, conforme estabelece a NR-01 , sobre as condições de segurança e saúde às quais estão expostos, de forma a padronizar comportamentos para prevenir acidentes e/ou doenças ocupacionais.</p>
+                    <table class="header-table">
+                        <tr>
+                            <td rowspan="3" style="width: 160px; text-align: center; vertical-align: middle; border-right: 1px solid #000;">${logoHtml}</td>
+                            <td colspan="2"><strong>Empresa:</strong> ${empresa}</td>
+                            <td colspan="2"><strong>Unidade:</strong> ${unidade}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><strong>Nome do Funcionário:</strong> ${formattedEmployeeName}</td>
+                            <td colspan="2"><strong>Data de Admissão:</strong> ${admissionDate}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><strong>Setor de Trabalho:</strong> ${formattedSetor}</td>
+                            <td colspan="2"><strong>Função:</strong> ${formattedFuncao}</td>
+                        </tr>
+                    </table>
+                    <h3>TAREFAS DA FUNÇÃO</h3>
+                    <p>${atividadesText}</p>
+                    <h3>AGENTES DE RISCOS OCUPACIONAIS - NR01 item 1.4.1 b) I / item 1.4.4 a)</h3>
+                    <table>
+                        <tr><td><strong>Acidente:</strong> ${getCombinedRisks('acidente')}</td><td><strong>Físico:</strong> ${getCombinedRisks('fisico')}</td></tr>
+                        <tr><td><strong>Ergonômico:</strong> ${getCombinedRisks('ergonomico')}</td><td><strong>Químico:</strong> ${getCombinedRisks('quimico')}</td></tr>
+                        <tr><td colspan="2"><strong>Biológico:</strong> ${getCombinedRisks('biologico')}</td></tr>
+                    </table>
+                    <h3>POSSÍVEIS DANOS À SAÚDE - NR01 item 1.4.1 b) I.</h3>
+                    <table>
+                        <tr><td><strong>Acidente:</strong> ${document.getElementById('damage-acidente').value.trim() || defaultText}</td><td><strong>Físico:</strong> ${document.getElementById('damage-fisico').value.trim() || defaultText}</td></tr>
+                        <tr><td><strong>Ergonômico:</strong> ${document.getElementById('damage-ergonomico').value.trim() || defaultText}</td><td><strong>Químico:</strong> ${document.getElementById('damage-quimico').value.trim() || defaultText}</td></tr>
+                        <tr><td colspan="2"><strong>Biológico:</strong> ${document.getElementById('damage-biologico').value.trim() || defaultText}</td></tr>
+                    </table>
+                    <h3>MEDIDAS ADOTADAS PELA EMPRESA PARA REDUZIR OS RISCOS OCUPACIONAIS NR01 item 1.4.1 b) II / item 1.4.4 c)</h3>
+                    ${epiHtml}
+                    <p>Treinamento e Supervisão para execução das tarefas e uso dos EPI, em especial em relação aos trabalhos em altura, com poeiras e solventes; Guarda-corpo de proteção periferias; Monitoramento do ambiente do trabalho afim de corrigir condições inseguras encontradas, imediatamente; Fornecimento de cópia de ASO informando os resultados dos exames médicos e dos exames complementares de diagnóstico aos quais os próprios trabalhadores forem submetidos; Sinalização de Segurança no ambiente de trabalho; Fornecimento, Treinamento e Exigência de uso de EPI.</p>
+                    <h3>INFORME DOS RESULTADOS DAS AVALIAÇÕES AMBIENTAIS NOS LOCAIS DE TRABALHO - NR01 item 1.4.1 b) IV.</h3>
+                    ${medicoesHtml}
+                    <h3>PROCEDIMENTOS A SEREM ADOTADOS EM SITUAÇÃO DE ACIDENTES E EMERGÊNCIAS - NR01 item 1.4.4 d) / item 1.4.1 e)</h3>
+                    <p>Comunique imediatamente o acidente à chefia imediata ou na impossibilidade à pessoa que possa acessá-la; Preserve as condições do local de acidente até a comunicação com a autoridade competente; Siga as orientações correspondentes ao acidente e com as atribuições de sua função, indicados no “Plano de Respostas aos Possíveis Cenários de Emergência”, elaborado pela empresa”.</p>
+                    <h3>ORIENTAÇÕES SOBRE CONSTATAÇÃO DE GRAVE E IMINENTE RISCO - NR01 item 1.4.4 e) / item 1.4.3 / item 1.4.3.1</h3>
+                    <p>Sempre que constatar Grave e Iminente Risco à Vida e/ou Saúde, sua ou de outros, interrompa de imediato e com segurança as atividades; Informe imediatamente ao seu superior hierárquico; Registre a constatação e as medidas tomadas no “Registro de Condições de Grave e Iminente Risco”, conforme procedimento padronizados pela empresa; Aguarde as providências e liberação formal do cenário pela empresa.</p>
+                    <p style="margin-top: 1rem;">Conforme Art. 158 da CLT e NR-01 item 1.4.2.1, o descumprimento imotivado das disposições legais e regulamentares sobre segurança e saúde no trabalho, inclusive das ordens de serviço expedidas pelo empregador, sujeita o empregado às penalidades legais, inclusive, demissão por justa causa.</p>
+                    <table style="margin-top: 2rem; width: 100%; text-align: center; border: none;"><tr style="border: none;"><td style="border: none;">___________________________<br>SESMT</td><td style="border: none;">___________________________<br>Chefia Imediata</td></tr></table>
+                    <p style="margin-top: 1rem;">Cópia recebida em: ______/______/______</p>
+                    <div class="signature-line" style="margin-top: 3rem;">${formattedEmployeeName}</div>
+                `;
+            }
+
+            function updateLivePreview() {
+                const selectedSetor = setorSelect.value;
+                const selectedFuncao = funcaoSelect.value;
+                if (!selectedSetor || !selectedFuncao) {
+                    liveOsPreview.innerHTML = `<p class="text-center text-gray-500">A pré-visualização aparecerá aqui assim que uma função for selecionada.</p>`;
+                    return;
+                }
+                
+                const representativeEmployee = employeeData.find(emp => {
+                    const empSetor = findValueInObject(emp, ['Setor']);
+                    const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
+                    return empSetor && empFuncao && empSetor.trim().toLowerCase() === selectedSetor.trim().toLowerCase() && empFuncao.trim().toLowerCase() === selectedFuncao.trim().toLowerCase();
+                });
+
+                if(representativeEmployee) {
+                    liveOsPreview.innerHTML = generateOsHtmlForEmployee(representativeEmployee);
+                } else {
+                     liveOsPreview.innerHTML = `<p class="text-center text-gray-500">Selecione uma função para ver a pré-visualização.</p>`;
+                }
+            }
+            
+            function updateRiskSummary() {
+                if (!documentAnalysisResult || !documentAnalysisResult.cargos) {
+                    riskSummaryContainer.innerHTML = `<p class="text-gray-500">Nenhum dado de documento analisado para exibir.</p>`;
+                    return;
+                }
+
+                let html = '';
+                const sectors = {};
+                documentAnalysisResult.cargos.forEach(cargo => {
+                    if (!sectors[cargo.setor]) {
+                        sectors[cargo.setor] = [];
+                    }
+                    sectors[cargo.setor].push(cargo);
+                });
+
+                for (const setor in sectors) {
+                    html += `<div class="p-4 border rounded-lg" style="border-color: var(--border-color);">`;
+                    html += `<h4 class="text-lg font-bold">${formatAsTitle(setor)}</h4>`;
+                    sectors[setor].forEach(cargo => {
+                        html += `<div class="ml-4 mt-2">`;
+                        html += `<p class="font-semibold">${formatAsTitle(cargo.funcao)}</p>`;
+                        // Adicione mais detalhes se desejar, por exemplo, uma lista de riscos.
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+                riskSummaryContainer.innerHTML = html;
+            }
+
+            
+            function addToReport(data) { generatedOSReport.push(data); updateReportTable(); }
+            function updateReportTable() {
+                reportTableBody.innerHTML = '';
+                generatedOSReport.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.nome}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.setor}</td><td class="py-2 px-4 border-b" style="border-color: var(--border-color);">${item.funcao}</td>`;
+                    reportTableBody.appendChild(row);
+                });
+            }
+            
+            // --- LÓGICA DO CHAT ---
+            function toggleChat() {
+                chatModal.classList.toggle('hidden');
+            }
+
+            function addChatMessage(text, sender) {
+                const bubble = document.createElement('div');
+                bubble.className = `chat-bubble ${sender}`;
+                bubble.textContent = text;
+                chatMessages.appendChild(bubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function handleChatSend() {
+                const userInput = chatInput.value.trim();
+                if (userInput === '') return;
+
+                addChatMessage(userInput, 'user');
+                chatInput.value = '';
+
+                let response = "Desculpe, não entendi. Você pode me perguntar sobre 'funções encontradas', 'atividades do [cargo]', 'EPIs para [cargo]' ou pedir para 'identificar os riscos' para a função selecionada.";
+
+                if (!documentAnalysisResult && !userInput.toLowerCase().includes('olá')) {
+                    addChatMessage("Por favor, primeiro analise um documento de SST para que eu possa ajudá-lo.", 'ai');
+                    return;
+                }
+
+                if (userInput.toLowerCase().includes('funções encontradas')) {
+                    const funcoes = documentAnalysisResult.cargos.map(c => formatAsTitle(c.funcao)).join(', ');
+                    response = `Encontrei as seguintes funções no documento: ${funcoes}.`;
+                } else if (userInput.toLowerCase().startsWith('quais as atividades')) {
+                    const cargoMatch = userInput.match(/atividades d[oae]\s+(.+)/i);
+                    if (cargoMatch && cargoMatch[1]) {
+                        const cargoName = cargoMatch[1].trim();
+                        const cargoData = documentAnalysisResult.cargos.find(c => c.funcao.toLowerCase() === cargoName.toLowerCase());
+                        response = cargoData ? `Atividades para ${formatAsTitle(cargoName)}: ${cargoData.atividades}` : `Não encontrei a função "${cargoName}" no documento.`;
+                    }
+                } else if (userInput.toLowerCase().startsWith('sugira epis para')) {
+                     const cargoMatch = userInput.match(/epis para\s+(.+)/i);
+                    if (cargoMatch && cargoMatch[1]) {
+                        const cargoName = cargoMatch[1].trim();
+                        const cargoData = documentAnalysisResult.cargos.find(c => c.funcao.toLowerCase() === cargoName.toLowerCase());
+                        if (cargoData && cargoData.epis.length > 0) {
+                            const epiListStr = cargoData.epis.map(e => `${e.nome} (C.A.: ${e.ca || 'N/A'})`).join('; ');
+                            response = `EPIs para ${formatAsTitle(cargoName)}: ${epiListStr}.`;
+                        } else {
+                            response = `Não encontrei EPIs específicos para a função "${cargoName}" no documento.`;
+                        }
+                    }
+                } else if (userInput.toLowerCase().includes('riscos')) {
+                    const selectedFuncao = funcaoSelect.value;
+                    if (!selectedFuncao) {
+                        response = "Por favor, selecione um setor e uma função primeiro para que eu possa ajudar a identificar os riscos.";
+                    } else {
+                        response = `Ok, vou identificar e marcar os riscos mais comuns para a função de ${formatAsTitle(selectedFuncao)}. Por favor, aguarde um momento.`;
+                        // Simula a busca e marcação dos riscos
+                        const functionRiskMap = {
+                            'Manobrista': {'acidente': ['Batida contra', 'Atropelamento', 'Queda de mesmo nível'],'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']},
+                            'Orientador de Tráfego': {'acidente': ['Atropelamento', 'Queda de mesmo nível'],'fisico': ['Ruído', 'Calor'],'ergonomico': ['Postura inadequada (sentado, em pé, agachado)']}
+                        };
+                        const risksToSelect = functionRiskMap[selectedFuncao];
+                        if (risksToSelect) {
+                            for (const category in risksToSelect) {
+                                risksToSelect[category].forEach(riskName => {
+                                    const checkbox = document.querySelector(`#risk-${category}-checkboxes input[value="${riskName}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                            handleRiskSelectionChange();
+                            updateLivePreview();
+                            setTimeout(() => addChatMessage("Pronto! Marquei alguns riscos na aba 'Análise de Riscos'. Por favor, revise e ajuste se necessário.", 'ai'), 500);
+                            showNotification('success', 'IA', 'Riscos selecionados pela IA na aba de Análise de Riscos.');
+                        } else {
+                             response = `Não tenho um mapeamento de riscos pré-definido para "${formatAsTitle(selectedFuncao)}". Por favor, preencha manualmente.`;
+                        }
+                    }
+                } else if (userInput.toLowerCase().includes('olá') || userInput.toLowerCase().includes('oi')) {
+                    response = "Olá! Como posso ajudar? Você pode me perguntar sobre as funções, atividades e EPIs encontrados no documento, ou pedir para eu identificar os riscos da função selecionada.";
+                }
+                
+                setTimeout(() => addChatMessage(response, 'ai'), 500);
+            }
+
+            // --- LÓGICA DO AGENTE IA ---
+            function displayAIAgentFeedback(feedback) {
+                if (!feedback) {
+                    agenteFeedbackDiv.innerHTML = `<p class="text-yellow-500">A IA não retornou um feedback para esta análise.</p>`;
+                    return;
+                }
+
+                let html = '';
+
+                if (feedback.pontos_positivos && feedback.pontos_positivos.length > 0) {
+                    html += '<h4 class="font-semibold text-lg text-green-600 dark:text-green-400">Pontos Positivos</h4><ul class="list-disc list-inside space-y-1">';
+                    feedback.pontos_positivos.forEach(item => {
+                        html += `<li>${item}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                if (feedback.pontos_a_melhorar && feedback.pontos_a_melhorar.length > 0) {
+                    html += '<h4 class="font-semibold text-lg text-yellow-600 dark:text-yellow-400 mt-4">Pontos a Melhorar</h4><ul class="list-disc list-inside space-y-1">';
+                    feedback.pontos_a_melhorar.forEach(item => {
+                        html += `<li>${item}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                if (feedback.sugestoes && feedback.sugestoes.length > 0) {
+                    html += '<h4 class="font-semibold text-lg text-blue-600 dark:text-blue-400 mt-4">Sugestões</h4><ul class="list-disc list-inside space-y-1">';
+                    feedback.sugestoes.forEach(item => {
+                        html += `<li>${item}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                
+                if (html === '') {
+                    html = '<p>O Agente IA não encontrou pontos específicos para comentar sobre esta configuração.</p>';
+                }
+
+                agenteFeedbackDiv.innerHTML = html;
+            }
+            
+            // --- EVENT LISTENERS ---
+            xlsxInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    updateChecklist('xlsx', false);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        employeeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                        processAndPopulateSelectors();
+                        updateChecklist('xlsx', true);
+                    } catch (error) {
+                        showNotification('error', 'Erro de Arquivo!', 'Não foi possível ler a planilha. Verifique o formato (.xlsx) e as colunas.');
+                        updateChecklist('xlsx', false);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+
+            setorSelect.addEventListener('change', () => {
+                populateFuncaoSelect(setorSelect.value);
+                updateChecklist('funcao', false);
+            });
+
+            funcaoSelect.addEventListener('change', () => {
+                const selectedFuncao = funcaoSelect.value;
+                const selected = selectedFuncao !== "";
+                updateChecklist('funcao', selected);
+                if (selected) {
+                    updateDetailsFromSources();
+                    updateLivePreview();
+                }
+            });
+            
+            logoInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    logoDataUrl = null;
+                    updateLivePreview();
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    logoDataUrl = e.target.result;
+                    updateLivePreview();
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            addEpiBtn.addEventListener('click', () => addEpiRow());
+            addMedicaoBtn.addEventListener('click', () => addMedicaoRow());
+            [manualAtividades, companyNameInput, companyUnitInput].forEach(el => el.addEventListener('input', updateLivePreview));
+            
+            generatePdfBtn.addEventListener('click', async () => {
+                if (!validateForm()) return;
+
+                const selectedSetor = setorSelect.value;
+                const selectedFuncao = funcaoSelect.value;
+
+                const matchingEmployees = employeeData.filter(emp => {
+                    const empSetor = findValueInObject(emp, ['Setor']);
+                    const empFuncao = findValueInObject(emp, ['Função', 'Cargo']);
+                    return empSetor && empFuncao && empSetor.trim().toLowerCase() === selectedSetor.trim().toLowerCase() && empFuncao.trim().toLowerCase() === selectedFuncao.trim().toLowerCase();
+                });
+
+                if (matchingEmployees.length === 0) {
+                    showNotification('warning', 'Nenhum Funcionário', 'Nenhum funcionário encontrado para o setor e função selecionados.');
+                    return;
+                }
+                
+                showNotification('success', 'Iniciando Geração', `Gerando OS para ${matchingEmployees.length} funcionário(s). Vários downloads serão iniciados.`);
+
+                for (const employee of matchingEmployees) {
+                    const osHtml = generateOsHtmlForEmployee(employee);
+                    document.getElementById('os-preview').innerHTML = osHtml;
+                    
+                    const employeeName = findValueInObject(employee, ['Nome do Funcionário', 'Nome']);
+                    const fileName = `OS - ${employeeName}.pdf`;
+                    const options = { margin: 0.5, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+                    
+                    await html2pdf().from(document.getElementById('os-preview')).set(options).save();
+                    
+                    addToReport({ 
+                        nome: formatAsTitle(employeeName), 
+                        setor: formatAsTitle(selectedSetor), 
+                        funcao: formatAsTitle(selectedFuncao) 
+                    });
+                }
+            });
+
+            // --- CÓDIGO DE INICIALIZAÇÃO ---
             createRiskCards();
             
             downloadTemplateBtn.addEventListener('click', (e) => {
@@ -1453,6 +1322,10 @@
             const tabContents = document.querySelectorAll('.tab-content');
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
+                    // Adicionado para esconder modais ao trocar de aba
+                    agenteModalOverlay.classList.add('hidden');
+                    chatModal.classList.add('hidden');
+
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     const target = tab.id.replace('btn', 'content');
@@ -1489,6 +1362,82 @@
                 }
             });
             addChatMessage("Olá! Sou sua assistente de IA. Após analisar um documento, você pode me perguntar sobre as funções, atividades e EPIs que encontrei.", 'ai');
+
+            // Listeners do Agente IA
+            analiseAgenteBtn.addEventListener('click', async () => {
+                if (!validateForm()) return;
+
+                agenteModalOverlay.classList.remove('hidden');
+                agenteFeedbackDiv.innerHTML = '<div class="flex justify-center items-center"><div class="loader"></div><span class="ml-4">Agente IA está analisando...</span></div>';
+
+                const currentData = {
+                    funcao: funcaoSelect.value,
+                    setor: setorSelect.value,
+                    atividades: manualAtividades.value,
+                    riscos: {
+                        acidente: getCombinedRisks('acidente'),
+                        ergonomico: getCombinedRisks('ergonomico'),
+                        fisico: getCombinedRisks('fisico'),
+                        quimico: getCombinedRisks('quimico'),
+                        biologico: getCombinedRisks('biologico'),
+                    },
+                    epis: Array.from(epiList.querySelectorAll('.dynamic-input-row')).map(row => {
+                        const inputs = row.querySelectorAll('input');
+                        return { nome: inputs[0].value, ca: inputs[1].value };
+                    })
+                };
+
+                const prompt = `
+                    Você é um especialista sênior em Saúde e Segurança do Trabalho (SST). Analise os seguintes dados de uma Ordem de Serviço (OS) e forneça um feedback construtivo.
+                    
+                    Dados da Função:
+                    - Função: ${currentData.funcao}
+                    - Setor: ${currentData.setor}
+                    - Atividades: ${currentData.atividades}
+                    - Riscos de Acidente Identificados: ${currentData.riscos.acidente}
+                    - Riscos Ergonômicos Identificados: ${currentData.riscos.ergonomico}
+                    - Riscos Físicos Identificados: ${currentData.riscos.fisico}
+                    - Riscos Químicos Identificados: ${currentData.riscos.quimico}
+                    - Riscos Biológicos Identificados: ${currentData.riscos.biologico}
+                    - EPIs Fornecidos: ${currentData.epis.map(e => `${e.nome} (CA: ${e.ca || 'N/A'})`).join(', ')}
+
+                    Sua tarefa é retornar uma análise em formato JSON com as seguintes chaves:
+                    1. "pontos_positivos": uma lista de strings com os pontos que estão corretos e bem alinhados (ex: "Os EPIs listados são adequados para os riscos físicos identificados.").
+                    2. "pontos_a_melhorar": uma lista de strings com inconsistências ou informações que parecem faltar (ex: "A atividade 'operação de serra circular' foi mencionada, mas o risco 'cortes' não foi selecionado.").
+                    3. "sugestoes": uma lista de strings com recomendações de segurança ou EPIs adicionais que poderiam ser considerados para os riscos e atividades descritos (ex: "Para o risco de 'ruído', considerar a inclusão de exames de audiometria no PCMSO.").
+
+                    Seja claro, objetivo e baseie sua análise nas boas práticas de SST.
+                `;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                pontos_positivos: { type: "ARRAY", items: { type: "STRING" } },
+                                pontos_a_melhorar: { type: "ARRAY", items: { type: "STRING" } },
+                                sugestoes: { type: "ARRAY", items: { type: "STRING" } }
+                            }
+                        }
+                    }
+                };
+                
+                try {
+                    const feedback = await executeGeminiAnalysis(payload, true);
+                    displayAIAgentFeedback(feedback);
+                } catch (error) {
+                    agenteFeedbackDiv.innerHTML = `<p class="text-red-500">Ocorreu um erro ao obter a análise da IA: ${error.message}</p>`;
+                }
+            });
+
+            agenteCloseBtn.addEventListener('click', () => agenteModalOverlay.classList.add('hidden'));
+            agenteModalOverlay.addEventListener('click', (e) => {
+                if (e.target === agenteModalOverlay) {
+                    agenteModalOverlay.classList.add('hidden');
+                }
+            });
         });
     </script>
 </body>
