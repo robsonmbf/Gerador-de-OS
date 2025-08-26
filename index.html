@@ -258,13 +258,13 @@
                                     <span class="status-icon">1</span>
                                     <span>Carregar planilha de funcionários</span>
                                 </li>
-                                <li id="checklist-funcao" class="checklist-item flex items-center gap-3">
-                                    <span class="status-icon">2</span>
-                                    <span>Selecionar Setor e Função</span>
-                                </li>
                                 <li id="checklist-doc" class="checklist-item flex items-center gap-3">
-                                    <span class="status-icon">3</span>
+                                    <span class="status-icon">2</span>
                                     <span>Carregar e analisar documento</span>
+                                </li>
+                                <li id="checklist-funcao" class="checklist-item flex items-center gap-3">
+                                    <span class="status-icon">3</span>
+                                    <span>Validar/Selecionar Função</span>
                                 </li>
                             </ul>
                         </div>
@@ -298,8 +298,22 @@
                                 </div>
                             </div>
 
+                             <div class="border-t pt-6" style="border-color: var(--border-color);">
+                                <h3 class="text-xl font-semibold mb-4">2. Carregar Documento de SST</h3>
+                                <label for="sst-doc-input" class="block mb-2 font-medium">Documento (PGR, LTCAT, etc.):</label>
+                                <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer" disabled>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Carregue a planilha para habilitar.</p>
+                                <div id="ocr-status" class="mt-2 text-sm"></div>
+                                <div id="progress-container" class="hidden mt-2">
+                                    <div class="progress-bar-container">
+                                        <div id="progress-bar" class="progress-bar">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="border-t pt-6" style="border-color: var(--border-color);">
-                                <h3 class="text-xl font-semibold mb-4">2. Selecionar Setor e Função</h3>
+                                <h3 class="text-xl font-semibold mb-4">3. Validar / Selecionar Setor e Função</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">A IA tentará preencher estes campos. Se necessário, ajuste a seleção para carregar os dados corretos.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label for="setor-select" class="block mb-2 font-medium">Setor:</label>
@@ -316,31 +330,10 @@
                                 </div>
                             </div>
 
-                             <div class="border-t pt-6" style="border-color: var(--border-color);">
-                                <h3 class="text-xl font-semibold mb-4">3. Carregar Documento de SST</h3>
-                                <label for="sst-doc-input" class="block mb-2 font-medium">Documento (PGR, LTCAT, etc.):</label>
-                                <input type="file" id="sst-doc-input" accept="image/*,application/pdf" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer" disabled>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Selecione um setor e função para habilitar.</p>
-                                <div id="ocr-status" class="mt-2 text-sm"></div>
-                                <div id="progress-container" class="hidden mt-2">
-                                    <div class="progress-bar-container">
-                                        <div id="progress-bar" class="progress-bar">0%</div>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div id="validation-section" class="hidden border-t pt-6" style="border-color: var(--border-color);">
                                 <h3 class="text-xl font-semibold mb-4">4. Validar Dados Extraídos</h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">A IA extraiu as informações abaixo. Revise, corrija ou complete conforme necessário.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="manual-setor" class="block text-sm font-medium">Setor:</label>
-                                        <input type="text" id="manual-setor" class="w-full p-2 border rounded-lg transition-all duration-300" readonly>
-                                    </div>
-                                    <div>
-                                        <label for="manual-funcao" class="block text-sm font-medium">Função:</label>
-                                        <input type="text" id="manual-funcao" class="w-full p-2 border rounded-lg transition-all duration-300" readonly>
-                                    </div>
                                     <div class="md:col-span-2">
                                         <label for="manual-atividades" class="block text-sm font-medium">Descrição das Atividades:</label>
                                         <textarea id="manual-atividades" rows="3" class="w-full p-2 border rounded-lg" placeholder="Nenhuma descrição de atividades encontrada..."></textarea>
@@ -580,7 +573,7 @@
                 icon.innerHTML = '&#10003;'; // Checkmark
             } else {
                 element.classList.remove('completed');
-                const number = item === 'xlsx' ? '1' : (item === 'funcao' ? '2' : '3');
+                const number = item === 'xlsx' ? '1' : (item === 'doc' ? '2' : '3');
                 icon.innerHTML = number;
             }
             checkFormReadiness();
@@ -709,6 +702,7 @@
             setorSelect.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'cursor-not-allowed');
             funcaoSelect.innerHTML = '<option value="">Selecione um setor...</option>';
             funcaoSelect.disabled = true;
+            sstDocInput.disabled = false;
         }
 
         setorSelect.addEventListener('change', () => {
@@ -727,7 +721,6 @@
                 funcaoSelect.disabled = true;
             }
             updateChecklist('funcao', false);
-            sstDocInput.disabled = true;
         });
 
         funcaoSelect.addEventListener('change', () => {
@@ -735,7 +728,6 @@
             const selectedSetor = setorSelect.value;
             const selected = selectedFuncao !== "";
             updateChecklist('funcao', selected);
-            sstDocInput.disabled = !selected;
 
             hideNotification(); // Limpa notificações antigas
 
@@ -769,12 +761,6 @@
             const file = event.target.files[0];
             if (!file) {
                 updateChecklist('doc', false);
-                return;
-            }
-            
-            if (funcaoSelect.value === "") {
-                showNotification('warning', 'Ação Necessária', 'Por favor, selecione um setor e função antes de carregar o documento.');
-                sstDocInput.value = '';
                 return;
             }
 
@@ -829,20 +815,18 @@
         
         // --- LÓGICA DE IA ---
         async function analyzeTextWithAI(text) {
-            const targetFunction = funcaoSelect.value;
-            
             const prompt = `
-                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, que foi extraído de um documento de SST (como LTCAT ou PGR).
-                Sua tarefa é encontrar e extrair as informações específicas para a função de "${targetFunction}".
-                Retorne as informações em um formato JSON estruturado. O texto pode conter tabelas e seções mal formatadas.
+                Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto a seguir, que foi extraído de um documento de SST (como LTCAT ou PGR), e retorne as informações em um formato JSON estruturado.
+                O texto pode conter tabelas e seções mal formatadas. Sua tarefa é interpretar o conteúdo e extrair os dados da primeira ou principal função descrita no documento.
                 
-                Extraia os seguintes dados APENAS para a função "${targetFunction}":
-                1.  **setor**: O nome do setor ou departamento associado a esta função.
-                2.  **atividades**: A descrição detalhada das atividades da função.
-                3.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
-                4.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
+                Extraia os seguintes dados:
+                1.  **setor**: O nome do setor ou departamento.
+                2.  **funcao**: O nome da função ou cargo.
+                3.  **atividades**: A descrição detalhada das atividades da função.
+                4.  **epis**: Uma lista de objetos, onde cada objeto contém o "nome" do EPI e o "ca" (Certificado de Aprovação, se houver).
+                5.  **medicoes**: Uma lista de objetos, onde cada objeto contém o "agente" (ex: Ruído), o "valor" da medição e a "unidade" (ex: dB(A)).
 
-                Se uma informação não for encontrada para esta função específica, retorne uma string vazia para aquele campo ou uma lista vazia para 'epis' e 'medicoes'.
+                Se uma informação não for encontrada, retorne uma string vazia para aquele campo ou uma lista vazia para 'epis' e 'medicoes'.
 
                 Texto para análise:
                 ---
@@ -858,6 +842,7 @@
                         type: "OBJECT",
                         properties: {
                             setor: { type: "STRING" },
+                            funcao: { type: "STRING" },
                             atividades: { type: "STRING" },
                             epis: {
                                 type: "ARRAY",
@@ -923,7 +908,22 @@
         }
         
         function populateFieldsFromAI(data) {
-            manualSetor.value = formatAsTitle(data.setor || '');
+            // Tenta selecionar o setor e função retornados pela IA
+            if (data.setor) {
+                const setorOption = [...setorSelect.options].find(opt => opt.value.toLowerCase() === data.setor.toLowerCase());
+                if (setorOption) {
+                    setorSelect.value = setorOption.value;
+                    setorSelect.dispatchEvent(new Event('change')); // Dispara o evento para popular as funções
+                }
+            }
+            if (data.funcao) {
+                 const funcaoOption = [...funcaoSelect.options].find(opt => opt.value.toLowerCase() === data.funcao.toLowerCase());
+                 if(funcaoOption) {
+                    funcaoSelect.value = funcaoOption.value;
+                    funcaoSelect.dispatchEvent(new Event('change'));
+                 }
+            }
+
             manualAtividades.value = data.atividades || '';
 
             epiList.innerHTML = '';
@@ -1030,7 +1030,7 @@
 
         addEpiBtn.addEventListener('click', () => addEpiRow());
         addMedicaoBtn.addEventListener('click', () => addMedicaoRow());
-        [manualSetor, manualFuncao, manualAtividades, companyNameInput, companyUnitInput].forEach(el => el.addEventListener('input', updateLivePreview));
+        [manualAtividades, companyNameInput, companyUnitInput].forEach(el => el.addEventListener('input', updateLivePreview));
 
         function validateForm() {
             let isValid = true;
@@ -1132,8 +1132,8 @@
         function generateOsHtmlForEmployee(employee) {
             const empresa = companyNameInput.value.trim() || '[Nome da Empresa]';
             const unidade = companyUnitInput.value.trim() || '[Unidade a ser definida]';
-            const setor = manualSetor.value.trim();
-            const funcao = manualFuncao.value.trim();
+            const setor = setorSelect.value;
+            const funcao = funcaoSelect.value;
             const atividadesText = manualAtividades.value.trim() || defaultText;
             const epiHtml = getStructuredEpiHtml();
             const medicoesHtml = getStructuredMedicaoHtml();
