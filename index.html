@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Ordem de Serviço (OS) com IA</title>
-    <!-- Tailwind CSS para estilização -->
+    <!-- Tailwind CSS para estilização (CDN sem SRI por ser um script de compilação JIT) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Bibliotecas de Terceiros com Subresource Integrity (SRI) para maior segurança -->
     <!-- SheetJS (xlsx) para ler arquivos Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" xintegrity="sha512-r22gChDnGvBylQ9U+B4M7o9ZASiT4eqC_I9LZYK5cvsFRXss33ANsJE90Uss+xMvKkZk6N311mGzB5GY2S7o+Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <!-- html2pdf.js para gerar PDFs a partir de HTML -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Tesseract.js para OCR (adicionado de volta) -->
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Tesseract.js para OCR -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js' xintegrity="sha384-ysoD4/4/DsoK2B3zD/i3p8eJ3yBU5V2b7b2pS227S2h7fSOd22CvjH2kQkAUYh+x" crossorigin="anonymous"></script>
+    <!-- PDF.js para ler texto de PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js" xintegrity="sha512-s0jOk9c084BH2o2s9oIMVdCeLSm6nB3U2t2okq5+I2L2kMCl2U9T2v0gA2+VfWkO2/6w2bVvTfHl2zT5gSx/gQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <script>
+        // Define o worker para o PDF.js. O SRI é aplicado no script principal acima.
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+    </script>
     <style>
         /* Definição de variáveis de cor para os temas claro e escuro */
         :root {
@@ -210,28 +219,6 @@
             align-self: flex-start;
             border-bottom-left-radius: 0.25rem;
         }
-        
-        /* Estilos do Modal do Agente IA */
-        #agente-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1040;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #agente-modal {
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            z-index: 1050;
-        }
-
 
         @keyframes blink { 50% { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -333,11 +320,11 @@
                                         <div class="flex-1 space-y-2">
                                             <div class="flex items-center">
                                                 <input id="direct-ai-radio" type="radio" value="direct-ai" name="analysis-method" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="direct-ai-radio" class="ml-2 text-sm font-medium">Análise Direta via IA <span class="text-xs text-gray-500">(PDFs)</span></label>
+                                                <label for="direct-ai-radio" class="ml-2 text-sm font-medium">Análise Direta via IA <span class="text-xs text-gray-500">(PDFs de texto)</span></label>
                                             </div>
                                             <div class="flex items-center">
                                                 <input id="ocr-radio" type="radio" value="ocr" name="analysis-method" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="ocr-radio" class="ml-2 text-sm font-medium">Análise via OCR <span class="text-xs text-gray-500">(Imagens/PDFs)</span></label>
+                                                <label for="ocr-radio" class="ml-2 text-sm font-medium">Análise via OCR <span class="text-xs text-gray-500">(Imagens, PDFs escaneados)</span></label>
                                             </div>
                                         </div>
                                         <button id="start-analysis-btn" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg self-center sm:self-end">Analisar</button>
@@ -423,9 +410,6 @@
                             <div class="text-center mb-8 space-y-4">
                                <h3 class="text-xl font-semibold mb-4">Finalizar</h3>
                                <div class="flex justify-center gap-4">
-                                    <button id="analise-agente-btn" disabled class="btn bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                                        Análise do Agente IA
-                                    </button>
                                     <button id="generate-pdf-btn" disabled class="btn bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
                                         Gerar OS para a Função
                                     </button>
@@ -487,93 +471,78 @@
             </div>
         </div>
     </div>
-    
-    <!-- Modal do Agente IA -->
-    <div id="agente-modal-overlay" class="hidden">
-        <div id="agente-modal" class="card shadow-2xl p-6 rounded-lg">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-semibold header-text">Análise do Agente IA</h3>
-                <button id="agente-close-btn" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl">&times;</button>
-            </div>
-            <div id="agente-feedback" class="space-y-4">
-                <!-- O feedback da IA será inserido aqui -->
-            </div>
-        </div>
-    </div>
-
 
     <script>
-        // --- BANCO DE DADOS DE RISCOS E DANOS ---
-        const riskData = {
-            fisico: {
-                "Ruído": ["Perda Auditiva Induzida pelo Ruído Ocupacional (PAIRO)."], "Calor": [], "Frio": [],
-                "Pressões anormais": ["Embolia gasosa", "Danos pulmonares", "Doença descompressiva"],
-                "Radiações ionizantes": ["Dano às células do corpo humano, causando doenças graves, inclusive fatais, como câncer."],
-                "Radiações não-ionizantes": ["Depressão imunológica", "fotoenvelhecimento", "lesões oculares como ceratoconjuntivite", "pterígio e catarata", "Doenças graves, inclusive fatais, como câncer."],
-                "Umidade": ["Doenças de pele", "Micoses", "Doenças respiratórias"],
-                "Vibrações localizadas (mão/braço)": ["Alterações articulares e vasomotoras."],
-                "Vibração de corpo inteiro (AREN)": ["Alterações no sistema digestivo", "sistema musculoesquelético", "sistema nervoso", "alterações na visão", "enjoos", "náuseas", "palidez."],
-                "Vibração de corpo inteiro (VDVR)": ["Alterações no sistema digestivo", "sistema musculoesquelético", "sistema nervoso", "alterações na visão", "enjoos", "náuseas", "palidez."],
-                "Ambiente Artificialmente Frio": ["Estresse", "desconforto", "dormência", "rigidez nas partes com maior intensidade de exposição ao frio", "redução da destreza", "formigamento", "redução da sensibilidade dos dedos e flexibilidade das articulações."],
-                "Trabalhos com perfuratrizes e marteletes pneumáticos": ["PAIR", "Problemas articulares e de coluna"],
-            },
-            quimico: {
-                "Arsênio e seus compostos": ["Intoxicação", "Câncer de pele e pulmão"], "Asbestos (ou amianto)": ["Asbestose", "Mesotelioma", "Câncer de pulmão"],
-                "Benzeno e seus compostos tóxicos": ["Leucemia", "Anemia", "Danos ao sistema nervoso"], "Berílio e seus compostos tóxicos": ["Beriliose", "Doença pulmonar crônica"],
-                "Bromo e seus compostos tóxicos": [], "Cádmio e seus compostos tóxicos": ["Danos renais", "Enfisema pulmonar"], "Carvão mineral e seus derivados": [],
-                "Chumbo e seus compostos tóxicos": ["Saturnismo", "Danos neurológicos e renais"], "Cloro e seus compostos tóxicos": [], "Cromo e seus compostos tóxicos": [],
-                "Fósforo e seus compostos tóxicos": [], "Hidrocarbonetos e outros compostos de carbono": [], "Iodo": [], "Manganês e seus compostos": [],
-                "Mercúrio e seus compostos": ["Hidrargirismo", "Danos neurológicos e renais"], "Níquel e seus compostos tóxicos": ["Dermatite de contato", "Câncer de pulmão e nasal"],
-                "Petróleo, xisto betuminoso, gás natural e seus derivados": [], "Sílica livre": ["Silicose", "Doença pulmonar obstrutiva crônica (DPOC)"],
-                "Outras substâncias químicas": ["Irritação/lesão ocular, na pele e mucosas", "Dermatites", "Queimadura Química", "Intoxicação", "Náuseas", "Vômitos."]
-            },
-            biologico: {
-                "Trabalhos em estabelecimentos de saúde com contato com pacientes portadores de doenças infectocontagiosas ou com manuseio de materiais contaminados": ["Hepatites", "Tuberculose", "HIV", "COVID-19"],
-                "Trabalhos com animais infectados para tratamento ou para o preparo de soro, vacinas e outros produtos": ["Brucelose", "Toxoplasmose", "Raiva"],
-                "Trabalhos em laboratórios de autópsia, de anatomia e anátomo-histologia": ["Infecções diversas", "Contaminação por material biológico"],
-                "Trabalho de exumação de corpos e manipulação de resíduos de animais deteriorados": ["Infecções", "Contaminação"],
-                "Trabalhos em galerias, fossas e tanques de esgoto": ["Leptospirose", "Hepatite A", "Infecções gastrointestinais"], "Esvaziamento de biodigestores": [],
-                "Coleta e industrialização do lixo": ["Tétano", "Hepatites", "Infecções de pele"]
-            },
-            acidente: {
-                "Abrasão e/ou escoriação": ["Lesão na pele ou mucosa."], "Agentes cortantes e/ou perfurantes": ["Corte, ferimento, perfuração."],
-                "Atropelamento": ["Prensamento ou aprisionamento de partes do corpo", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
-                "Batida contra": ["Escoriações", "luxações", "fraturas", "traumatismo craniano."],
-                "Contato com animais peçonhentos": ["Reações alérgicas", "choque anafilático", "queimaduras", "intoxicação."],
-                "Eletricidade": ["Queimadura de 1º, 2º ou 3º grau", "choque elétrico", "fibrilação ventricular", "parada cardiorrespiratória."],
-                "Explosão": ["Queimadura de 1º, 2º ou 3º grau", "projeção de estilhaços", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
-                "Incêndio": ["Queimadura de 1º, 2º ou 3º grau", "asfixia", "intoxicação por gases."], "Projeção de partículas": ["Lesão ocular", "corte", "ferimento", "perfuração."],
-                "Queda de mesmo nível": ["Escoriações", "luxações", "fraturas", "traumatismo craniano."], "Queda de nível diferente": ["Escoriações", "luxações", "fraturas", "traumatismo craniano", "lesão medular."],
-                "Queda de objetos": ["Prensamento ou aprisionamento de partes do corpo", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
-                "Soterramento": ["Asfixia", "desconforto respiratório", "nível de consciência alterado", "letargia", "palidez", "pele azulada", "tosse", "transtorno neurológico."],
-                "Trabalho em espaços confinados": ["Asfixia", "hiperóxia", "contaminação por poeiras e/ou gases tóxicos", "queimadura", "afogamento."]
-            },
-            ergonomico: {
-                "Levantamento e transporte manual de peso": ["Dores lombares", "Hérnia de disco", "Lesões musculoesqueléticas"],
-                "Postura inadequada (sentado, em pé, agachado)": ["Dores na coluna", "Fadiga muscular", "LER/DORT"],
-                "Movimentos repetitivos": ["Tendinite", "Tenossinovite", "Síndrome do túnel do carpo", "LER/DORT"],
-                "Jornada de trabalho prolongada": ["Estresse", "Fadiga crônica", "Burnout"],
-                "Ritmo excessivo de trabalho": ["Estresse", "Ansiedade", "Fadiga mental"],
-                "Monotonia das tarefas": ["Desmotivação", "Estresse", "Problemas de saúde mental"],
-                "Exigência de força excessiva": ["Distensões musculares", "Rupturas de tendões", "Lesões articulares"]
-            }
-        };
-
-        // --- VARIÁVEIS GLOBAIS DE ESTADO ---
-        let employeeData = [];
-        let structuredRoles = {};
-        let documentAnalysisResult = null;
-        let generatedOSReport = [];
-        let logoDataUrl = null;
-        const defaultText = "Não identificado no momento da avaliação.";
-        const checklistStatus = {
-            xlsx: false,
-            doc: false,
-            funcao: false
-        };
-
-        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
+            // --- BANCO DE DADOS DE RISCOS E DANOS ---
+            const riskData = {
+                fisico: {
+                    "Ruído": ["Perda Auditiva Induzida pelo Ruído Ocupacional (PAIRO)."], "Calor": [], "Frio": [],
+                    "Pressões anormais": ["Embolia gasosa", "Danos pulmonares", "Doença descompressiva"],
+                    "Radiações ionizantes": ["Dano às células do corpo humano, causando doenças graves, inclusive fatais, como câncer."],
+                    "Radiações não-ionizantes": ["Depressão imunológica", "fotoenvelhecimento", "lesões oculares como ceratoconjuntivite", "pterígio e catarata", "Doenças graves, inclusive fatais, como câncer."],
+                    "Umidade": ["Doenças de pele", "Micoses", "Doenças respiratórias"],
+                    "Vibrações localizadas (mão/braço)": ["Alterações articulares e vasomotoras."],
+                    "Vibração de corpo inteiro (AREN)": ["Alterações no sistema digestivo", "sistema musculoesquelético", "sistema nervoso", "alterações na visão", "enjoos", "náuseas", "palidez."],
+                    "Vibração de corpo inteiro (VDVR)": ["Alterações no sistema digestivo", "sistema musculoesquelético", "sistema nervoso", "alterações na visão", "enjoos", "náuseas", "palidez."],
+                    "Ambiente Artificialmente Frio": ["Estresse", "desconforto", "dormência", "rigidez nas partes com maior intensidade de exposição ao frio", "redução da destreza", "formigamento", "redução da sensibilidade dos dedos e flexibilidade das articulações."],
+                    "Trabalhos com perfuratrizes e marteletes pneumáticos": ["PAIR", "Problemas articulares e de coluna"],
+                },
+                quimico: {
+                    "Arsênio e seus compostos": ["Intoxicação", "Câncer de pele e pulmão"], "Asbestos (ou amianto)": ["Asbestose", "Mesotelioma", "Câncer de pulmão"],
+                    "Benzeno e seus compostos tóxicos": ["Leucemia", "Anemia", "Danos ao sistema nervoso"], "Berílio e seus compostos tóxicos": ["Beriliose", "Doença pulmonar crônica"],
+                    "Bromo e seus compostos tóxicos": [], "Cádmio e seus compostos tóxicos": ["Danos renais", "Enfisema pulmonar"], "Carvão mineral e seus derivados": [],
+                    "Chumbo e seus compostos tóxicos": ["Saturnismo", "Danos neurológicos e renais"], "Cloro e seus compostos tóxicos": [], "Cromo e seus compostos tóxicos": [],
+                    "Fósforo e seus compostos tóxicos": [], "Hidrocarbonetos e outros compostos de carbono": [], "Iodo": [], "Manganês e seus compostos": [],
+                    "Mercúrio e seus compostos": ["Hidrargirismo", "Danos neurológicos e renais"], "Níquel e seus compostos tóxicos": ["Dermatite de contato", "Câncer de pulmão e nasal"],
+                    "Petróleo, xisto betuminoso, gás natural e seus derivados": [], "Sílica livre": ["Silicose", "Doença pulmonar obstrutiva crônica (DPOC)"],
+                    "Outras substâncias químicas": ["Irritação/lesão ocular, na pele e mucosas", "Dermatites", "Queimadura Química", "Intoxicação", "Náuseas", "Vômitos."]
+                },
+                biologico: {
+                    "Trabalhos em estabelecimentos de saúde com contato com pacientes portadores de doenças infectocontagiosas ou com manuseio de materiais contaminados": ["Hepatites", "Tuberculose", "HIV", "COVID-19"],
+                    "Trabalhos com animais infectados para tratamento ou para o preparo de soro, vacinas e outros produtos": ["Brucelose", "Toxoplasmose", "Raiva"],
+                    "Trabalhos em laboratórios de autópsia, de anatomia e anátomo-histologia": ["Infecções diversas", "Contaminação por material biológico"],
+                    "Trabalho de exumação de corpos e manipulação de resíduos de animais deteriorados": ["Infecções", "Contaminação"],
+                    "Trabalhos em galerias, fossas e tanques de esgoto": ["Leptospirose", "Hepatite A", "Infecções gastrointestinais"], "Esvaziamento de biodigestores": [],
+                    "Coleta e industrialização do lixo": ["Tétano", "Hepatites", "Infecções de pele"]
+                },
+                acidente: {
+                    "Abrasão e/ou escoriação": ["Lesão na pele ou mucosa."], "Agentes cortantes e/ou perfurantes": ["Corte, ferimento, perfuração."],
+                    "Atropelamento": ["Prensamento ou aprisionamento de partes do corpo", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
+                    "Batida contra": ["Escoriações", "luxações", "fraturas", "traumatismo craniano."],
+                    "Contato com animais peçonhentos": ["Reações alérgicas", "choque anafilático", "queimaduras", "intoxicação."],
+                    "Eletricidade": ["Queimadura de 1º, 2º ou 3º grau", "choque elétrico", "fibrilação ventricular", "parada cardiorrespiratória."],
+                    "Explosão": ["Queimadura de 1º, 2º ou 3º grau", "projeção de estilhaços", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
+                    "Incêndio": ["Queimadura de 1º, 2º ou 3º grau", "asfixia", "intoxicação por gases."], "Projeção de partículas": ["Lesão ocular", "corte", "ferimento", "perfuração."],
+                    "Queda de mesmo nível": ["Escoriações", "luxações", "fraturas", "traumatismo craniano."], "Queda de nível diferente": ["Escoriações", "luxações", "fraturas", "traumatismo craniano", "lesão medular."],
+                    "Queda de objetos": ["Prensamento ou aprisionamento de partes do corpo", "cortes", "escoriações", "luxações", "fraturas", "amputações."],
+                    "Soterramento": ["Asfixia", "desconforto respiratório", "nível de consciência alterado", "letargia", "palidez", "pele azulada", "tosse", "transtorno neurológico."],
+                    "Trabalho em espaços confinados": ["Asfixia", "hiperóxia", "contaminação por poeiras e/ou gases tóxicos", "queimadura", "afogamento."]
+                },
+                ergonomico: {
+                    "Levantamento e transporte manual de peso": ["Dores lombares", "Hérnia de disco", "Lesões musculoesqueléticas"],
+                    "Postura inadequada (sentado, em pé, agachado)": ["Dores na coluna", "Fadiga muscular", "LER/DORT"],
+                    "Movimentos repetitivos": ["Tendinite", "Tenossinovite", "Síndrome do túnel do carpo", "LER/DORT"],
+                    "Jornada de trabalho prolongada": ["Estresse", "Fadiga crônica", "Burnout"],
+                    "Ritmo excessivo de trabalho": ["Estresse", "Ansiedade", "Fadiga mental"],
+                    "Monotonia das tarefas": ["Desmotivação", "Estresse", "Problemas de saúde mental"],
+                    "Exigência de força excessiva": ["Distensões musculares", "Rupturas de tendões", "Lesões articulares"]
+                }
+            };
+
+            // --- VARIÁVEIS GLOBAIS DE ESTADO ---
+            let employeeData = [];
+            let structuredRoles = {};
+            let documentAnalysisResult = null;
+            let generatedOSReport = [];
+            let logoDataUrl = null;
+            const defaultText = "Não identificado no momento da avaliação.";
+            const checklistStatus = {
+                xlsx: false,
+                doc: false,
+                funcao: false
+            };
+
             // --- SELEÇÃO DE ELEMENTOS DO DOM ---
             const notificationArea = document.getElementById('notification-area');
             const notificationTitle = document.getElementById('notification-title');
@@ -593,7 +562,6 @@
             const medicaoList = document.getElementById('medicao-list');
             const addMedicaoBtn = document.getElementById('add-medicao-btn');
             const generatePdfBtn = document.getElementById('generate-pdf-btn');
-            const analiseAgenteBtn = document.getElementById('analise-agente-btn');
             const reportTableBody = document.getElementById('report-table-body');
             const themeToggle = document.getElementById('theme-toggle');
             const sunIcon = document.getElementById('theme-toggle-sun');
@@ -612,9 +580,6 @@
             const chatMessages = document.getElementById('chat-messages');
             const chatInput = document.getElementById('chat-input');
             const chatSendBtn = document.getElementById('chat-send-btn');
-            const agenteModalOverlay = document.getElementById('agente-modal-overlay');
-            const agenteCloseBtn = document.getElementById('agente-close-btn');
-            const agenteFeedbackDiv = document.getElementById('agente-feedback');
 
             // --- FUNÇÕES AUXILIARES ---
             function formatAsTitle(inputText) {
@@ -759,6 +724,7 @@
                 funcaoSelect.innerHTML = '<option value="">Selecione um setor...</option>';
                 funcaoSelect.disabled = true;
                 sstDocInput.disabled = false;
+                sstDocInput.parentElement.querySelector('p').classList.add('hidden');
             }
 
             function populateFuncaoSelect(selectedSetor) {
@@ -811,7 +777,7 @@
                             epis: [],
                             medicoes: []
                         };
-                        const episFromSheet = findValueInObject(representativeEmployee, ['EPI']);
+                        const episFromSheet = findValueInObject(representativeEmployee, ['EPIs (Separados por \';\')', 'EPI']);
                         if (episFromSheet && typeof episFromSheet === 'string') {
                             const epiItems = episFromSheet.split(';').filter(item => item.trim() !== '');
                             epiItems.forEach(item => {
@@ -850,7 +816,6 @@
             function checkFormReadiness() {
                 const allChecked = Object.values(checklistStatus).every(status => status);
                 generatePdfBtn.disabled = !allChecked;
-                analiseAgenteBtn.disabled = !allChecked;
             }
             
             // --- LÓGICA DOS CAMPOS DINÂMICOS ---
@@ -1040,10 +1005,11 @@
                 let html = '';
                 const sectors = {};
                 documentAnalysisResult.cargos.forEach(cargo => {
-                    if (!sectors[cargo.setor]) {
-                        sectors[cargo.setor] = [];
+                    const setor = cargo.setor || "Setor Não Identificado";
+                    if (!sectors[setor]) {
+                        sectors[setor] = [];
                     }
-                    sectors[cargo.setor].push(cargo);
+                    sectors[setor].push(cargo);
                 });
 
                 for (const setor in sectors) {
@@ -1152,46 +1118,6 @@
                 }
                 
                 setTimeout(() => addChatMessage(response, 'ai'), 500);
-            }
-
-            // --- LÓGICA DO AGENTE IA ---
-            function displayAIAgentFeedback(feedback) {
-                if (!feedback) {
-                    agenteFeedbackDiv.innerHTML = `<p class="text-yellow-500">A IA não retornou um feedback para esta análise.</p>`;
-                    return;
-                }
-
-                let html = '';
-
-                if (feedback.pontos_positivos && feedback.pontos_positivos.length > 0) {
-                    html += '<h4 class="font-semibold text-lg text-green-600 dark:text-green-400">Pontos Positivos</h4><ul class="list-disc list-inside space-y-1">';
-                    feedback.pontos_positivos.forEach(item => {
-                        html += `<li>${item}</li>`;
-                    });
-                    html += '</ul>';
-                }
-
-                if (feedback.pontos_a_melhorar && feedback.pontos_a_melhorar.length > 0) {
-                    html += '<h4 class="font-semibold text-lg text-yellow-600 dark:text-yellow-400 mt-4">Pontos a Melhorar</h4><ul class="list-disc list-inside space-y-1">';
-                    feedback.pontos_a_melhorar.forEach(item => {
-                        html += `<li>${item}</li>`;
-                    });
-                    html += '</ul>';
-                }
-
-                if (feedback.sugestoes && feedback.sugestoes.length > 0) {
-                    html += '<h4 class="font-semibold text-lg text-blue-600 dark:text-blue-400 mt-4">Sugestões</h4><ul class="list-disc list-inside space-y-1">';
-                    feedback.sugestoes.forEach(item => {
-                        html += `<li>${item}</li>`;
-                    });
-                    html += '</ul>';
-                }
-                
-                if (html === '') {
-                    html = '<p>O Agente IA não encontrou pontos específicos para comentar sobre esta configuração.</p>';
-                }
-
-                agenteFeedbackDiv.innerHTML = html;
             }
             
             // --- EVENT LISTENERS ---
@@ -1323,7 +1249,6 @@
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     // Adicionado para esconder modais ao trocar de aba
-                    agenteModalOverlay.classList.add('hidden');
                     chatModal.classList.add('hidden');
 
                     tabs.forEach(t => t.classList.remove('active'));
@@ -1363,81 +1288,249 @@
             });
             addChatMessage("Olá! Sou sua assistente de IA. Após analisar um documento, você pode me perguntar sobre as funções, atividades e EPIs que encontrei.", 'ai');
 
-            // Listeners do Agente IA
-            analiseAgenteBtn.addEventListener('click', async () => {
-                if (!validateForm()) return;
+            // =================================================================
+            // CORREÇÕES E NOVAS FUNÇÕES PARA ANÁLISE DE ARQUIVOS E IA
+            // =================================================================
+            
+            // Função para encontrar valor em objeto com chaves case-insensitive
+            function findValueInObject(obj, keys) {
+                for (const key of keys) {
+                    const objKey = Object.keys(obj).find(k => k.toLowerCase().trim() === key.toLowerCase().trim());
+                    if (objKey) {
+                        return obj[objKey];
+                    }
+                }
+                return null;
+            }
 
-                agenteModalOverlay.classList.remove('hidden');
-                agenteFeedbackDiv.innerHTML = '<div class="flex justify-center items-center"><div class="loader"></div><span class="ml-4">Agente IA está analisando...</span></div>';
-
-                const currentData = {
-                    funcao: funcaoSelect.value,
-                    setor: setorSelect.value,
-                    atividades: manualAtividades.value,
-                    riscos: {
-                        acidente: getCombinedRisks('acidente'),
-                        ergonomico: getCombinedRisks('ergonomico'),
-                        fisico: getCombinedRisks('fisico'),
-                        quimico: getCombinedRisks('quimico'),
-                        biologico: getCombinedRisks('biologico'),
-                    },
-                    epis: Array.from(epiList.querySelectorAll('.dynamic-input-row')).map(row => {
-                        const inputs = row.querySelectorAll('input');
-                        return { nome: inputs[0].value, ca: inputs[1].value };
-                    })
-                };
-
-                const prompt = `
-                    Você é um especialista sênior em Saúde e Segurança do Trabalho (SST). Analise os seguintes dados de uma Ordem de Serviço (OS) e forneça um feedback construtivo.
+            // Mostra as opções de análise quando um arquivo é selecionado
+            sstDocInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    analysisOptionsDiv.classList.remove('hidden');
+                    const fileType = file.type;
+                    const ocrRadio = document.getElementById('ocr-radio');
+                    const directAiRadio = document.getElementById('direct-ai-radio');
                     
-                    Dados da Função:
-                    - Função: ${currentData.funcao}
-                    - Setor: ${currentData.setor}
-                    - Atividades: ${currentData.atividades}
-                    - Riscos de Acidente Identificados: ${currentData.riscos.acidente}
-                    - Riscos Ergonômicos Identificados: ${currentData.riscos.ergonomico}
-                    - Riscos Físicos Identificados: ${currentData.riscos.fisico}
-                    - Riscos Químicos Identificados: ${currentData.riscos.quimico}
-                    - Riscos Biológicos Identificados: ${currentData.riscos.biologico}
-                    - EPIs Fornecidos: ${currentData.epis.map(e => `${e.nome} (CA: ${e.ca || 'N/A'})`).join(', ')}
+                    if (fileType.startsWith('image/')) {
+                        ocrRadio.checked = true;
+                        directAiRadio.checked = false;
+                    } else if (fileType === 'application/pdf') {
+                        // Deixa o usuário escolher, pois pode ser PDF de texto ou imagem
+                        ocrRadio.checked = false;
+                        directAiRadio.checked = true;
+                    }
+                } else {
+                    analysisOptionsDiv.classList.add('hidden');
+                }
+            });
 
-                    Sua tarefa é retornar uma análise em formato JSON com as seguintes chaves:
-                    1. "pontos_positivos": uma lista de strings com os pontos que estão corretos e bem alinhados (ex: "Os EPIs listados são adequados para os riscos físicos identificados.").
-                    2. "pontos_a_melhorar": uma lista de strings com inconsistências ou informações que parecem faltar (ex: "A atividade 'operação de serra circular' foi mencionada, mas o risco 'cortes' não foi selecionado.").
-                    3. "sugestoes": uma lista de strings com recomendações de segurança ou EPIs adicionais que poderiam ser considerados para os riscos e atividades descritos (ex: "Para o risco de 'ruído', considerar a inclusão de exames de audiometria no PCMSO.").
+            // Inicia a análise quando o botão é clicado
+            startAnalysisBtn.addEventListener('click', async () => {
+                const file = sstDocInput.files[0];
+                const analysisMethod = document.querySelector('input[name="analysis-method"]:checked');
 
-                    Seja claro, objetivo e baseie sua análise nas boas práticas de SST.
-                `;
-                
-                const payload = {
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                pontos_positivos: { type: "ARRAY", items: { type: "STRING" } },
-                                pontos_a_melhorar: { type: "ARRAY", items: { type: "STRING" } },
-                                sugestoes: { type: "ARRAY", items: { type: "STRING" } }
+                if (!file || !analysisMethod) {
+                    showNotification('warning', 'Atenção!', 'Por favor, selecione um arquivo e um método de análise.');
+                    return;
+                }
+
+                aiStatus.innerHTML = '<div class="loader"></div><span>Analisando documento...</span>';
+                progressContainer.classList.remove('hidden');
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                startAnalysisBtn.disabled = true;
+
+                try {
+                    let textContent = '';
+                    if (analysisMethod.value === 'ocr') {
+                        textContent = await getTextFromOcr(file);
+                    } else {
+                        textContent = await getTextFromPdf(file);
+                    }
+
+                    if (!textContent.trim()) {
+                       throw new Error("Não foi possível extrair texto do documento. Se for um PDF escaneado, tente a análise via OCR.");
+                    }
+                    
+                    progressBar.style.width = '50%';
+                    progressBar.textContent = '50%';
+                    aiStatus.innerHTML = '<div class="loader"></div><span>IA processando o texto extraído...</span>';
+
+                    const prompt = `
+                        Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto extraído de um documento de SST (como PGR, LTCAT, etc.) e retorne uma estrutura JSON.
+                        O JSON deve conter uma chave principal "cargos", que é um array de objetos.
+                        Cada objeto nesse array deve representar uma função/cargo e conter as seguintes chaves: "setor", "funcao", "atividades", "epis" (um array de objetos com "nome" e "ca"), e "medicoes" (um array de objetos com "agente", "valor" e "unidade").
+                        Extraia as informações da forma mais precisa possível do texto abaixo. Se uma informação não for encontrada para um cargo, retorne uma string vazia ou um array vazio.
+
+                        Texto do documento:
+                        ---
+                        ${textContent}
+                        ---
+                    `;
+
+                    const payload = {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    cargos: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                setor: { type: "STRING" },
+                                                funcao: { type: "STRING" },
+                                                atividades: { type: "STRING" },
+                                                epis: {
+                                                    type: "ARRAY",
+                                                    items: {
+                                                        type: "OBJECT",
+                                                        properties: {
+                                                            nome: { type: "STRING" },
+                                                            ca: { type: "STRING" }
+                                                        }
+                                                    }
+                                                },
+                                                medicoes: {
+                                                    type: "ARRAY",
+                                                    items: {
+                                                        type: "OBJECT",
+                                                        properties: {
+                                                            agente: { type: "STRING" },
+                                                            valor: { type: "STRING" },
+                                                            unidade: { type: "STRING" }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                };
-                
-                try {
-                    const feedback = await executeGeminiAnalysis(payload, true);
-                    displayAIAgentFeedback(feedback);
+                    };
+
+                    documentAnalysisResult = await executeGeminiAnalysis(payload, true);
+                    
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '100%';
+                    aiStatus.innerHTML = '<span>&#10003; Análise concluída com sucesso!</span>';
+                    showNotification('success', 'Sucesso!', 'Documento analisado. Verifique os campos preenchidos e o resumo de riscos.');
+                    updateChecklist('doc', true);
+                    
+                    // Tenta pré-selecionar o setor/função
+                    autoSelectRoleAfterAnalysis();
+                    updateRiskSummary();
+
                 } catch (error) {
-                    agenteFeedbackDiv.innerHTML = `<p class="text-red-500">Ocorreu um erro ao obter a análise da IA: ${error.message}</p>`;
+                    console.error("Erro na análise:", error);
+                    aiStatus.innerHTML = `<span>&#10060; Erro na análise: ${error.message}</span>`;
+                    showNotification('error', 'Erro de Análise', error.message);
+                    updateChecklist('doc', false);
+                } finally {
+                    startAnalysisBtn.disabled = false;
                 }
             });
 
-            agenteCloseBtn.addEventListener('click', () => agenteModalOverlay.classList.add('hidden'));
-            agenteModalOverlay.addEventListener('click', (e) => {
-                if (e.target === agenteModalOverlay) {
-                    agenteModalOverlay.classList.add('hidden');
+            // Função para extrair texto de PDF (usando PDF.js)
+            async function getTextFromPdf(file) {
+                const reader = new FileReader();
+                return new Promise((resolve, reject) => {
+                    reader.onload = async (event) => {
+                        try {
+                            const pdfData = new Uint8Array(event.target.result);
+                            const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                            let fullText = '';
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                fullText += textContent.items.map(item => item.str).join(' ');
+                                updateProgressBar((i / pdf.numPages) * 40, `Extraindo texto da página ${i}...`);
+                            }
+                            resolve(fullText);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            // Função para extrair texto de imagem (usando Tesseract.js)
+            async function getTextFromOcr(file) {
+                const worker = await Tesseract.createWorker('por', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                           updateProgressBar(m.progress * 40, 'Reconhecendo texto...');
+                        }
+                    },
+                });
+                const { data: { text } } = await worker.recognize(file);
+                await worker.terminate();
+                return text;
+            }
+
+            // Função para atualizar a barra de progresso
+            function updateProgressBar(percentage, text) {
+                const p = Math.round(percentage);
+                progressBar.style.width = `${p}%`;
+                progressBar.textContent = `${p}%`;
+                aiStatus.innerHTML = `<div class="loader"></div><span>${text}</span>`;
+            }
+
+            // Função para chamar a API do Gemini
+            async function executeGeminiAnalysis(payload, isJson = false) {
+                 const apiKey = ""; // Deixe em branco, será tratado pelo ambiente
+                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                
+                 const response = await fetch(apiUrl, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify(payload)
+                 });
+
+                 if (!response.ok) {
+                     const errorBody = await response.json();
+                     throw new Error(`Erro da API: ${errorBody.error?.message || response.statusText}`);
+                 }
+
+                 const result = await response.json();
+                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                 if (!text) {
+                     throw new Error("A IA não retornou uma resposta válida.");
+                 }
+
+                 if (isJson) {
+                     try {
+                         return JSON.parse(text);
+                     } catch (e) {
+                         throw new Error("A resposta da IA não é um JSON válido.");
+                     }
+                 }
+                 return text;
+            }
+            
+            // Tenta selecionar o primeiro cargo encontrado na análise
+            function autoSelectRoleAfterAnalysis() {
+                if (!documentAnalysisResult || !documentAnalysisResult.cargos || documentAnalysisResult.cargos.length === 0) {
+                    return;
                 }
-            });
+                const firstRole = documentAnalysisResult.cargos[0];
+                if (firstRole.setor && firstRole.funcao) {
+                    setorSelect.value = firstRole.setor;
+                    populateFuncaoSelect(firstRole.setor);
+                    funcaoSelect.value = firstRole.funcao;
+                    
+                    // Dispara o evento change para carregar os dados
+                    funcaoSelect.dispatchEvent(new Event('change'));
+                }
+            }
+
         });
     </script>
 </body>
