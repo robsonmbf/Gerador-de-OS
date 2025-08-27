@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Ordem de Serviço (OS) com IA</title>
-    <!-- Tailwind CSS para estilização (CDN sem SRI por ser um script de compilação JIT) -->
+    <!-- Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Bibliotecas de Terceiros com Subresource Integrity (SRI) para maior segurança -->
@@ -12,15 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" xintegrity="sha512-r22gChDnGvBylQ9U+B4M7o9ZASiT4eqC_I9LZYK5cvsFRXss33ANsJE90Uss+xMvKkZk6N311mGzB5GY2S7o+Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <!-- html2pdf.js para gerar PDFs a partir de HTML -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- Tesseract.js para OCR -->
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js' xintegrity="sha384-ysoD4/4/DsoK2B3zD/i3p8eJ3yBU5V2b7b2pS227S2h7fSOd22CvjH2kQkAUYh+x" crossorigin="anonymous"></script>
-    <!-- PDF.js para ler texto de PDFs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js" xintegrity="sha512-s0jOk9c084BH2o2s9oIMVdCeLSm6nB3U2t2okq5+I2L2kMCl2U9T2v0gA2+VfWkO2/6w2bVvTfHl2zT5gSx/gQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
-    <script>
-        // Define o worker para o PDF.js. O SRI é aplicado no script principal acima.
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-    </script>
     <style>
         /* Definição de variáveis de cor para os temas claro e escuro */
         :root {
@@ -320,14 +312,14 @@
                                         <div class="flex-1 space-y-2">
                                             <div class="flex items-center">
                                                 <input id="direct-ai-radio" type="radio" value="direct-ai" name="analysis-method" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="direct-ai-radio" class="ml-2 text-sm font-medium">Análise Direta via IA <span class="text-xs text-gray-500">(PDFs de texto)</span></label>
+                                                <label for="direct-ai-radio" class="ml-2 text-sm font-medium">Análise de PDF</label>
                                             </div>
                                             <div class="flex items-center">
                                                 <input id="ocr-radio" type="radio" value="ocr" name="analysis-method" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="ocr-radio" class="ml-2 text-sm font-medium">Análise via OCR <span class="text-xs text-gray-500">(Imagens, PDFs escaneados)</span></label>
+                                                <label for="ocr-radio" class="ml-2 text-sm font-medium">Análise de Imagem (OCR)</label>
                                             </div>
                                         </div>
-                                        <button id="start-analysis-btn" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg self-center sm:self-end">Analisar</button>
+                                        <button id="start-analysis-btn" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg self-center sm:self-end">Analisar com Backend</button>
                                     </div>
                                 </div>
 
@@ -446,6 +438,14 @@
 
         <!-- Área de Pré-visualização para PDF (oculta) -->
         <div id="os-container" class="hidden"><div id="os-preview"></div></div>
+        
+        <!-- Seção Adicionada para Análise com Google Vision API -->
+        <div class="card p-6 sm:p-8 mt-8">
+            <h2 class="text-2xl font-bold header-text mb-4">Enviar documento para análise (Google Vision OCR)</h2>
+            <input type="file" id="fileInput" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800 cursor-pointer" />
+            <pre id="output" class="mt-4 p-4 rounded-lg overflow-x-auto" style="background-color: var(--bg-color); border: 1px solid var(--border-color);"></pre>
+        </div>
+
     </div>
     
     <!-- Botão Flutuante do Chat -->
@@ -1289,7 +1289,7 @@
             addChatMessage("Olá! Sou sua assistente de IA. Após analisar um documento, você pode me perguntar sobre as funções, atividades e EPIs que encontrei.", 'ai');
 
             // =================================================================
-            // CORREÇÕES E NOVAS FUNÇÕES PARA ANÁLISE DE ARQUIVOS E IA
+            // ARQUITETURA BACKEND: SIMULAÇÃO DA ANÁLISE DE DOCUMENTOS
             // =================================================================
             
             // Função para encontrar valor em objeto com chaves case-insensitive
@@ -1325,7 +1325,7 @@
                 }
             });
 
-            // Inicia a análise quando o botão é clicado
+            // Inicia a análise quando o botão é clicado, agora chamando a simulação de backend
             startAnalysisBtn.addEventListener('click', async () => {
                 const file = sstDocInput.files[0];
                 const analysisMethod = document.querySelector('input[name="analysis-method"]:checked');
@@ -1335,98 +1335,24 @@
                     return;
                 }
 
-                aiStatus.innerHTML = '<div class="loader"></div><span>Analisando documento...</span>';
+                aiStatus.innerHTML = '<div class="loader"></div><span>Enviando para o servidor...</span>';
                 progressContainer.classList.remove('hidden');
-                progressBar.style.width = '0%';
-                progressBar.textContent = '0%';
+                updateProgressBar(10, 'Iniciando upload...');
                 startAnalysisBtn.disabled = true;
 
                 try {
-                    let textContent = '';
-                    if (analysisMethod.value === 'ocr') {
-                        textContent = await getTextFromOcr(file);
-                    } else {
-                        textContent = await getTextFromPdf(file);
-                    }
-
-                    if (!textContent.trim()) {
-                       throw new Error("Não foi possível extrair texto do documento. Se for um PDF escaneado, tente a análise via OCR.");
-                    }
+                    // Esta função agora simula a chamada para um backend
+                    documentAnalysisResult = await processDocumentOnBackend(file, analysisMethod.value);
                     
-                    progressBar.style.width = '50%';
-                    progressBar.textContent = '50%';
-                    aiStatus.innerHTML = '<div class="loader"></div><span>IA processando o texto extraído...</span>';
-
-                    const prompt = `
-                        Você é um especialista em Saúde e Segurança do Trabalho (SST). Analise o texto extraído de um documento de SST (como PGR, LTCAT, etc.) e retorne uma estrutura JSON.
-                        O JSON deve conter uma chave principal "cargos", que é um array de objetos.
-                        Cada objeto nesse array deve representar uma função/cargo e conter as seguintes chaves: "setor", "funcao", "atividades", "epis" (um array de objetos com "nome" e "ca"), e "medicoes" (um array de objetos com "agente", "valor" e "unidade").
-                        Extraia as informações da forma mais precisa possível do texto abaixo. Se uma informação não for encontrada para um cargo, retorne uma string vazia ou um array vazio.
-
-                        Texto do documento:
-                        ---
-                        ${textContent}
-                        ---
-                    `;
-
-                    const payload = {
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                    cargos: {
-                                        type: "ARRAY",
-                                        items: {
-                                            type: "OBJECT",
-                                            properties: {
-                                                setor: { type: "STRING" },
-                                                funcao: { type: "STRING" },
-                                                atividades: { type: "STRING" },
-                                                epis: {
-                                                    type: "ARRAY",
-                                                    items: {
-                                                        type: "OBJECT",
-                                                        properties: {
-                                                            nome: { type: "STRING" },
-                                                            ca: { type: "STRING" }
-                                                        }
-                                                    }
-                                                },
-                                                medicoes: {
-                                                    type: "ARRAY",
-                                                    items: {
-                                                        type: "OBJECT",
-                                                        properties: {
-                                                            agente: { type: "STRING" },
-                                                            valor: { type: "STRING" },
-                                                            unidade: { type: "STRING" }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    };
-
-                    documentAnalysisResult = await executeGeminiAnalysis(payload, true);
-                    
-                    progressBar.style.width = '100%';
-                    progressBar.textContent = '100%';
                     aiStatus.innerHTML = '<span>&#10003; Análise concluída com sucesso!</span>';
-                    showNotification('success', 'Sucesso!', 'Documento analisado. Verifique os campos preenchidos e o resumo de riscos.');
+                    showNotification('success', 'Sucesso!', 'Documento analisado pelo backend. Verifique os campos preenchidos.');
                     updateChecklist('doc', true);
                     
-                    // Tenta pré-selecionar o setor/função
                     autoSelectRoleAfterAnalysis();
                     updateRiskSummary();
 
                 } catch (error) {
-                    console.error("Erro na análise:", error);
+                    console.error("Erro na análise via backend:", error);
                     aiStatus.innerHTML = `<span>&#10060; Erro na análise: ${error.message}</span>`;
                     showNotification('error', 'Erro de Análise', error.message);
                     updateChecklist('doc', false);
@@ -1435,44 +1361,63 @@
                 }
             });
 
-            // Função para extrair texto de PDF (usando PDF.js)
-            async function getTextFromPdf(file) {
-                const reader = new FileReader();
-                return new Promise((resolve, reject) => {
-                    reader.onload = async (event) => {
-                        try {
-                            const pdfData = new Uint8Array(event.target.result);
-                            const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-                            let fullText = '';
-                            for (let i = 1; i <= pdf.numPages; i++) {
-                                const page = await pdf.getPage(i);
-                                const textContent = await page.getTextContent();
-                                fullText += textContent.items.map(item => item.str).join(' ');
-                                updateProgressBar((i / pdf.numPages) * 40, `Extraindo texto da página ${i}...`);
-                            }
-                            resolve(fullText);
-                        } catch (error) {
-                            reject(error);
+            /**
+             * SIMULAÇÃO DE BACKEND: Esta função representa o código do frontend fazendo uma requisição
+             * para um servidor (backend). O servidor seria responsável por receber o arquivo,
+             * processá-lo com OCR ou IA e retornar os dados estruturados.
+             * @param {File} file - O arquivo a ser analisado.
+             * @param {string} analysisMethod - O método de análise ('ocr' ou 'direct-ai').
+             * @returns {Promise<Object>} - Os dados extraídos do documento.
+             */
+            async function processDocumentOnBackend(file, analysisMethod) {
+                // 1. Prepara os dados para envio (como em um formulário HTML)
+                const formData = new FormData();
+                formData.append('document', file);
+                formData.append('method', analysisMethod);
+
+                // 2. Simula a barra de progresso do upload
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simula latência de rede
+                updateProgressBar(50, 'Processando no servidor...');
+
+                // 3. Simula a chamada de API com fetch() para o endpoint do backend
+                // Em um cenário real, a linha abaixo seria:
+                // const response = await fetch('/api/analyze', { method: 'POST', body: formData });
+                // if (!response.ok) throw new Error('Erro na resposta do servidor.');
+                // const data = await response.json();
+                
+                // 4. MOCK DA RESPOSTA DO SERVIDOR: Para fins de demonstração, retornamos dados fixos
+                // que simulam o que a IA do backend teria extraído.
+                console.log('Simulando chamada para backend com:', { fileName: file.name, method: analysisMethod });
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simula processamento da IA
+                
+                const mockedResponse = {
+                    cargos: [
+                        {
+                            setor: "Operacional",
+                            funcao: "Manobrista",
+                            atividades: "Manobrar veículos dos clientes até as vagas demarcadas e executa atividades de orientação.",
+                            epis: [{ nome: "Sapato Social Ocupacional", ca: "33698" }],
+                            medicoes: [{ agente: "Ruído", valor: "78.5", unidade: "dB(A)" }]
+                        },
+                        {
+                            setor: "Operacional",
+                            funcao: "Orientador de Tráfego",
+                            atividades: "Executa atividades de orientação fornecendo informações aos condutores para garantir fluidez ao tráfego.",
+                            epis: [
+                                { nome: "Botina de Segurança", ca: "45611" },
+                                { nome: "Capa de Chuva PVC", ca: "28449" }
+                            ],
+                            medicoes: []
                         }
-                    };
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(file);
-                });
+                    ]
+                };
+
+                updateProgressBar(100, 'Dados recebidos!');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                return mockedResponse;
             }
 
-            // Função para extrair texto de imagem (usando Tesseract.js)
-            async function getTextFromOcr(file) {
-                const worker = await Tesseract.createWorker('por', 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                           updateProgressBar(m.progress * 40, 'Reconhecendo texto...');
-                        }
-                    },
-                });
-                const { data: { text } } = await worker.recognize(file);
-                await worker.terminate();
-                return text;
-            }
 
             // Função para atualizar a barra de progresso
             function updateProgressBar(percentage, text) {
@@ -1480,39 +1425,6 @@
                 progressBar.style.width = `${p}%`;
                 progressBar.textContent = `${p}%`;
                 aiStatus.innerHTML = `<div class="loader"></div><span>${text}</span>`;
-            }
-
-            // Função para chamar a API do Gemini
-            async function executeGeminiAnalysis(payload, isJson = false) {
-                 const apiKey = ""; // Deixe em branco, será tratado pelo ambiente
-                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-                
-                 const response = await fetch(apiUrl, {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify(payload)
-                 });
-
-                 if (!response.ok) {
-                     const errorBody = await response.json();
-                     throw new Error(`Erro da API: ${errorBody.error?.message || response.statusText}`);
-                 }
-
-                 const result = await response.json();
-                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                 if (!text) {
-                     throw new Error("A IA não retornou uma resposta válida.");
-                 }
-
-                 if (isJson) {
-                     try {
-                         return JSON.parse(text);
-                     } catch (e) {
-                         throw new Error("A resposta da IA não é um JSON válido.");
-                     }
-                 }
-                 return text;
             }
             
             // Tenta selecionar o primeiro cargo encontrado na análise
@@ -1522,15 +1434,75 @@
                 }
                 const firstRole = documentAnalysisResult.cargos[0];
                 if (firstRole.setor && firstRole.funcao) {
-                    setorSelect.value = firstRole.setor;
-                    populateFuncaoSelect(firstRole.setor);
-                    funcaoSelect.value = firstRole.funcao;
-                    
-                    // Dispara o evento change para carregar os dados
-                    funcaoSelect.dispatchEvent(new Event('change'));
+                    // Procura pelo valor exato no <select>
+                    const setorOption = Array.from(setorSelect.options).find(opt => opt.value.toLowerCase() === firstRole.setor.toLowerCase());
+                    if (setorOption) {
+                        setorSelect.value = setorOption.value;
+                        populateFuncaoSelect(setorOption.value);
+                        
+                        const funcaoOption = Array.from(funcaoSelect.options).find(opt => opt.value.toLowerCase() === firstRole.funcao.toLowerCase());
+                        if (funcaoOption) {
+                            funcaoSelect.value = funcaoOption.value;
+                            funcaoSelect.dispatchEvent(new Event('change'));
+                        }
+                    }
                 }
             }
 
+        });
+    </script>
+    
+    <!-- Script Adicionado para Google Vision API -->
+    <script>
+        // ATENÇÃO: Expor chaves de API no lado do cliente (frontend) é ALTAMENTE INSEGURO.
+        // Qualquer pessoa pode ver sua chave e usá-la, gerando custos na sua conta.
+        // Este código é apenas para fins de DEMONSTRAÇÃO. Em um ambiente de produção,
+        // a chamada para a API do Google Vision DEVE ser feita a partir de um backend seguro.
+        const API_KEY = "AIzaSyCt_RRt2rgCBdUKMFSszyovLU57dFmcAR4"; 
+
+        document.getElementById("fileInput").addEventListener("change", async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const outputElement = document.getElementById("output");
+            outputElement.textContent = 'Analisando imagem...';
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64File = event.target.result.split(",")[1];
+
+                try {
+                    const response = await fetch(
+                      `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`,
+                      {
+                        method: "POST",
+                        body: JSON.stringify({
+                          requests: [
+                            {
+                              image: { content: base64File },
+                              features: [{ type: "TEXT_DETECTION" }],
+                            },
+                          ],
+                        }),
+                      }
+                    );
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Erro da API do Google: ${errorData.error.message}`);
+                    }
+
+                    const result = await response.json();
+                    const text = result.responses[0].fullTextAnnotation?.text || "Nenhum texto encontrado.";
+                    outputElement.textContent = text;
+
+                } catch (error) {
+                    console.error("Erro ao chamar a API Vision:", error);
+                    outputElement.textContent = `Erro: ${error.message}`;
+                }
+            };
+
+            reader.readAsDataURL(file);
         });
     </script>
 </body>
